@@ -1,0 +1,11 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="../_lib/AcceptEx_IOCP_NetworkLib/AcceptEx_IOCP_NetworkLib.vcxproj" Id="50cc943c-da7a-4670-b695-4f35da14bf9f" />
+  <Project Path="../_lib/CDB/CDB.vcxproj" Id="30d6d807-4937-4e3e-8103-c58626a9fde6" />
+  <Project Path="../_lib/CrushDump_lib/CrushDump_lib.vcxproj" Id="4e2aadba-fb6a-489d-9070-59bbb3778dc0" />
+  <Project Path="../_lib/MTProfiler_Lib/MTProfiler_Lib.vcxproj" Id="6c0df0ee-f9b3-460c-9a0f-67a432b7b9e0" />
+  <Project Path="FieldServer.vcxproj" Id="862f2d6f-dcac-4e58-851c-f7aba3ee81a9" />
+</Solution>
