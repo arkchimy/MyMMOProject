@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="../_lib/CrushDump_lib/CrushDump_lib.vcxproj" Id="4e2aadba-fb6a-489d-9070-59bbb3778dc0" />
+  <Project Path="ClientProject.vcxproj" Id="abadcc77-ee28-47e0-af6f-97921ce3cef9" />
+</Solution>
