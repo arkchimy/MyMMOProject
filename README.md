@@ -64,20 +64,20 @@ C++ · Windows IOCP · MySQL · Redis (cpp_redis) · DirectX11 (클라이언트)
 ---
 
 ## 폴더 구조
-┌────────────────────────────────────────────────────────────────────────┐
-│  FieldServer/            인증 + 필드 전투 서버 (IOCP, MySQL/Redis)       │
-│  ClientProject/          DirectX11 클라이언트                           │
-│  ClientBotProject/       부하테스트용 봇 클라이언트                      │
-│                                                                        │
-│  _lib/                                                                  │
-│      AcceptEx_IOCP_NetworkLib/  직접 구현한 IOCP 비동기 네트워크 라이브러리│
-│      CDB/                       MySQL 연동 래퍼 클래스                   │
-│      CrushDump_lib/             크래시 덤프 수집 유틸                     │
-│      MTProfiler_Lib/            멀티스레드 프로파일러                     │
-│                                                                         │
-│  _Shared/                                                               │
-│      Protocol.h                 서버-클라 공유 패킷 프로토콜              │
-└────────────────────────────────────────────────────────────────────────┘
+
+```
+├─ FieldServer/       인증 + 필드 전투 서버 (IOCP, MySQL/Redis)
+├─ ClientProject/     DirectX11 클라이언트
+├─ ClientBotProject/  부하테스트용 봇 클라이언트
+├─ _lib/              직접 구현한 공용 라이브러리
+│  ├─ AcceptEx_IOCP_NetworkLib/  IOCP 비동기 네트워크 라이브러리
+│  ├─ CDB/                       MySQL 연동 래퍼 클래스
+│  ├─ CrushDump_lib/             크래시 덤프 수집 유틸
+│  └─ MTProfiler_Lib/            멀티스레드 프로파일러
+└─ _Shared/
+   └─ Protocol.h     서버-클라 공유 패킷 프로토콜
+```
+
 
 ---
 
