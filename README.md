@@ -11,7 +11,7 @@
 [![Redis](https://img.shields.io/badge/Redis-cpp__redis-DC382D?style=flat&logo=redis&logoColor=white)](#)
 [![DirectX11](https://img.shields.io/badge/DirectX-11-107C10?style=flat&logo=directx&logoColor=white)](#)
 
-> **설계 배경, 트러블슈팅 과정, 코드 상세 설명**은 포트폴리오에서 확인하실 수 있습니다.
+> **설계 배경, 트러블슈팅 과정, 코드 상세 설명**은 포트폴리오에 담았습니다.
 
 ---
 
@@ -64,19 +64,20 @@ C++ · Windows IOCP · MySQL · Redis (cpp_redis) · DirectX11 (클라이언트)
 ---
 
 ## 폴더 구조
-
-```
-FieldServer/            인증 + 필드 전투 서버 (IOCP, MySQL/Redis)
-ClientProject/          DirectX11 클라이언트
-ClientBotProject/       부하테스트용 봇 클라이언트
-_lib/
-  AcceptEx_IOCP_NetworkLib/  직접 구현한 IOCP 비동기 네트워크 라이브러리
-  CDB/                       MySQL 연동 래퍼 클래스
-  CrushDump_lib/             크래시 덤프 수집 유틸
-  MTProfiler_Lib/            멀티스레드 프로파일러
-_Shared/
-  Protocol.h                 서버-클라 공유 패킷 프로토콜
-```
+┌────────────────────────────────────────────────────────────────────────┐
+│  FieldServer/            인증 + 필드 전투 서버 (IOCP, MySQL/Redis)       │
+│  ClientProject/          DirectX11 클라이언트                           │
+│  ClientBotProject/       부하테스트용 봇 클라이언트                      │
+│                                                                        │
+│  _lib/                                                                  │
+│      AcceptEx_IOCP_NetworkLib/  직접 구현한 IOCP 비동기 네트워크 라이브러리│
+│      CDB/                       MySQL 연동 래퍼 클래스                   │
+│      CrushDump_lib/             크래시 덤프 수집 유틸                     │
+│      MTProfiler_Lib/            멀티스레드 프로파일러                     │
+│                                                                         │
+│  _Shared/                                                               │
+│      Protocol.h                 서버-클라 공유 패킷 프로토콜              │
+└────────────────────────────────────────────────────────────────────────┘
 
 ---
 
@@ -110,6 +111,7 @@ _Shared/
 2. Redis를 로컬에서 실행합니다 (기본 `127.0.0.1:6379`).
 3. `FieldServer/FieldServer.slnx`를 빌드 후 실행합니다 — DB 접속 정보는 `FieldServer.cpp` 상단에서 직접 수정합니다.
 4. `ClientProject/ClientProject.slnx`를 빌드 후 실행합니다 — 서버 주소/포트는 `ClientProject/Network/NetConfig.h`에서 설정합니다 (기본 포트 32000).
-
+       └─────  에셋을 등록하지 않았으므로 실행되지 않음.
+5. 'ClientBotProject'를 빌드 후 실행합니다.
 ---
-더 깊은 설계 의도와 트러블슈팅 과정이 궁금하시다면 포트폴리오를 참고해 주세요.
+ 설계 의도와 트러블슈팅 과정은 포트폴리오에 담았습니다.
