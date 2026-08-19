@@ -141,6 +141,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir);C:\Program Files\MySQL\MySQL Server 8.0\include;</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

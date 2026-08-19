@@ -28,7 +28,7 @@ enum : int32_t
 	MONSTER_HIT_STUN_FRAME = 50,       // 몬스터의 스턴시간
 	MONSTER_ATTACK_TOTAL_FRAME = 80,   // monster_idle로 돌아오는시간
 
-	ALLOW_DELAY_FRAME = 5,			   // 오차 허락 프레임 한계치
+	ALLOW_DELAY_FRAME = 25,			   // 오차 허락 프레임 한계치
 
 	PLAYER_ATTACK_AWINDUP_FRAME = 8,   // Player의 공격 판정 프레임
 	PLAYER_ATTACK_DAMAGE = 35,

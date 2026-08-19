@@ -256,6 +256,11 @@ namespace contents
 			for (auto& pair : players)
 			{
 				Player& player = *pair.second;
+                // auth를 송신 후 Loop를 나가기전에 컨텐츠 메세지가 오면 msg 유실
+                if (player.mNextFieldID != CONFIG_AUTH_FIELD_IDX)
+                {
+                    continue;
+                }
 				while (utility::Message* msg = player.DeQueueMsgOrNull())
 				{
 					authPacketProc(*msg, db);
@@ -541,7 +546,7 @@ namespace contents
 		{
 			for (int8_t col = 0; col < SECTOR_COL_CNT; ++col)
 			{
-				int cnt = 2 + rand() % 3; // 섹터당 2~4마리
+				int cnt = rand() % 2; // 섹터당 0~1마리
 
 				for (int i = 0; i < cnt; ++i)
 				{
@@ -1047,10 +1052,17 @@ namespace contents
 			{
 				// 시나리오 : Attack을 돌고 서버는 패킷을 받은 후 돌기때문에 네트워크 지연으로 나올 수 있음.
 				// 만일 허용치를 넘는다면 서버의 부하를 의심해보자.  1. SendQ Cap 줄이기
-				std::cout << "PLAYER_ATTACK_TOTAL_FRAME - player.mAnimFrame: " << PLAYER_ATTACK_TOTAL_FRAME - player.mAnimFrame
-					<< std::setw(10) << "AccountNo : "
-					<< player.mAccountNo << std::setw(30) << "\t Attack 상태에서 MoveStart이 발생.\n";
-				MY_ASSERT(false, "서버는 Attack상태이지만 클라에선 Attack이 끝났다고 판단하고 MoveStart를  송신하는 경우가 존재.");
+                player.mSyncCnt += PLAYER_ATTACK_TOTAL_FRAME - player.mAnimFrame;
+				if (CONFIG_SINK_MAXCOUNT < player.mSyncCnt)
+				{
+                    // MY_ASSERT(false, "서버는 Attack상태이지만 클라에선 Attack이 끝났다고 판단하고 MoveStart를  송신하는 경우가 존재.");
+					_InterlockedIncrement64(&mDisconnect_Sync);
+					network::SeqAndIdx disconnectID{};
+					disconnectID.Value = seqID;
+					disconnectSession(disconnectID);
+					return;
+				}
+
 				return;
 			}
 			break;
