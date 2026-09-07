@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 
@@ -8,12 +9,18 @@ namespace render
 }
 namespace render
 {
-	class ImageManager
+	class ImageManager final
 	{
 	private:
 		ImageManager() = default;
 	public:
 		~ImageManager();
+
+		ImageManager(const ImageManager&) = delete;
+		ImageManager& operator=(const ImageManager&) = delete;
+		ImageManager(ImageManager&&) = delete;
+		ImageManager& operator=(ImageManager&&) = delete;
+
 		static ImageManager* const GetInstance()
 		{
 			static ImageManager sInstance;
@@ -24,7 +31,7 @@ namespace render
 	private:
 
 		std::unordered_map<std::string, Image*> mCache;
-		std::unordered_map<std::string, int> mRefcnt;
+		std::unordered_map<std::string, int32_t> mRefcnt;
 
 	};
 

@@ -4,10 +4,16 @@ namespace actors { class Actor; }
 
 namespace render
 {
-    class Camera
+    class Camera final
     {
     public:
         Camera();
+
+        Camera(const Camera&) = delete;
+        Camera& operator=(const Camera&) = delete;
+        Camera(Camera&&) = delete;
+        Camera& operator=(Camera&&) = delete;
+
         void SetTarget(actors::Actor* target);
         void Update();
         float GetX() const { return mX; }

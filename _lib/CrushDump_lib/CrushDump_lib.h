@@ -1,6 +1,8 @@
 ﻿#pragma once
 #pragma comment(lib, "DbgHelp.lib")
 
+#include <cstdint>
+
 #include <Windows.h>
 #include <iostream>
 #include <psapi.h>
@@ -15,8 +17,8 @@ class CDump
   public:
     CDump()
     {
-        _dumpCount = 0;
-        _invalid_parameter_handler oldHandler, newHandler; //
+        mDumpCount = 0;
+        _invalid_parameter_handler oldHandler = nullptr, newHandler = nullptr; //
         newHandler = myInvalidParameterHandler;
         oldHandler = _set_invalid_parameter_handler(newHandler);
 
@@ -24,20 +26,27 @@ class CDump
         _CrtSetReportMode(_CRT_ASSERT, 0);
         _CrtSetReportMode(_CRT_ERROR, 0);
 
-        _CrtSetReportHook(_custom_Report_hook);
+        _CrtSetReportHook(customReportHook);
 
         _set_purecall_handler(myPurecallHandler);
-        SetHandlerDump();
+        setHandlerDump();
     }
-    static LONG WINAPI MyExceptionFilter(__in PEXCEPTION_POINTERS pExceptionPointer)
-    {
-        int iWorkingMemory = 0;
-        SYSTEMTIME stNowTime;
 
-        long DumpCount = _InterlockedIncrement(&_dumpCount);
+    CDump(const CDump &) = delete;
+    CDump &operator=(const CDump &) = delete;
+    CDump(CDump &&) = delete;
+    CDump &operator=(CDump &&) = delete;
+
+  private:
+    static LONG WINAPI myExceptionFilter(__in PEXCEPTION_POINTERS pExceptionPointer)
+    {
+        int32_t iWorkingMemory = 0;
+        SYSTEMTIME stNowTime{};
+
+        long DumpCount = _InterlockedIncrement(&mDumpCount);
 
         HANDLE hProcess = 0;
-        PROCESS_MEMORY_COUNTERS pmc;
+        PROCESS_MEMORY_COUNTERS pmc{};
 
         hProcess = GetCurrentProcess();
 
@@ -45,7 +54,7 @@ class CDump
             return 0;
         if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
         {
-            iWorkingMemory = (int)(pmc.WorkingSetSize / 1024 / 1024);
+            iWorkingMemory = (int32_t)(pmc.WorkingSetSize / 1024 / 1024);
         }
         CloseHandle(hProcess);
 
@@ -85,26 +94,28 @@ class CDump
         }
         return EXCEPTION_EXECUTE_HANDLER;
     }
-    static void SetHandlerDump()
+    static void setHandlerDump()
     {
-        SetUnhandledExceptionFilter(MyExceptionFilter);
+        SetUnhandledExceptionFilter(myExceptionFilter);
     }
-    static void myInvalidParameterHandler(const wchar_t *expression, const wchar_t *function, const wchar_t *file, unsigned int line, uintptr_t pReserved)
+    static void myInvalidParameterHandler(const wchar_t *expression, const wchar_t *function, const wchar_t *file, unsigned int line, uintptr_t pReserved) noexcept
     {
-        Crash();
+        crash();
     }
-    static void Crash(void)
+    static void crash(void) noexcept
     {
         __debugbreak();
     }
-    static int _custom_Report_hook(int ireposttype, char *message, int *returnvalue)
+    static int customReportHook(int ireposttype, char *message, int *returnvalue) noexcept
     {
-        Crash();
+        crash();
         return true;
     }
-    static void myPurecallHandler(void)
+    static void myPurecallHandler(void) noexcept
     {
-        Crash();
+        crash();
     }
-    inline static long _dumpCount;
+
+  private:
+    inline static long mDumpCount;
 };

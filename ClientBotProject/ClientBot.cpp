@@ -30,14 +30,14 @@ struct MonitorPacketTrack
 {
 	PacketType type;
 	const char* name;
-	int group;
+	int32_t group;
 };
 
 //UTF-8 한글(3바이트, 화면 2칸)과 setw()의 바이트 기준 패딩이 어긋나는 걸 보정.
 //한글 글자 수만큼 setw에 더해줘야 화면상 실제 폭이 width에 맞춰짐.
-static int KoreanPad(const char* str, int width)
+static int32_t KoreanPad(const char* str, int32_t width)
 {
-	int extra = 0;
+	int32_t extra = 0;
 	for (const unsigned char* p = reinterpret_cast<const unsigned char*>(str); *p; ++p)
 	{
 		if ((*p & 0xF0) == 0xE0)	//UTF-8 3바이트 시퀀스 시작 바이트 (한글 음절 범위)
@@ -49,20 +49,20 @@ static int KoreanPad(const char* str, int width)
 }
 
 //box-drawing 문자(─│┌┬┐├┼┤└┴┘)는 UTF-8로 3바이트지만 화면 폭은 1칸이라 KoreanPad 보정이 필요 없음.
-static std::string HLine(int width, const char* seg)
+static std::string HLine(int32_t width, const char* seg)
 {
 	std::string line;
-	for (int i = 0; i < width; ++i)
+	for (int32_t i = 0; i < width; ++i)
 	{
 		line += seg;
 	}
 	return line;
 }
 
-static std::string BuildBorder(const int* widths, int colCount, const char* left, const char* mid, const char* right)
+static std::string BuildBorder(const int32_t* widths, int32_t colCount, const char* left, const char* mid, const char* right)
 {
 	std::string line = left;
-	for (int i = 0; i < colCount; ++i)
+	for (int32_t i = 0; i < colCount; ++i)
 	{
 		line += HLine(widths[i], "─");
 		line += (i + 1 < colCount ? mid : right);
@@ -77,14 +77,14 @@ struct KVRow
 };
 
 //4개 박스를 한 줄에 나란히 배치하기 위해 폭을 고정값으로 공유 (박스마다 폭이 다르면 옆으로 못 붙임)
-constexpr int kKVLabelWidth = 16;
-constexpr int kKVValueWidth = 10;
-constexpr int kKVBoxWidth = kKVLabelWidth + kKVValueWidth + 3;	//│라벨│값│
+constexpr int32_t kKVLabelWidth = 16;
+constexpr int32_t kKVValueWidth = 10;
+constexpr int32_t kKVBoxWidth = kKVLabelWidth + kKVValueWidth + 3;	//│라벨│값│
 
 //"항목/값" 2열 박스 테이블을 한 줄씩 문자열로 만들어 반환 (직접 출력하지 않음 - 옆 박스와 나란히 찍기 위해)
 static std::vector<std::string> BuildKVBox(const char* title, const std::vector<KVRow>& rows)
 {
-	const int widths[2] = { kKVLabelWidth, kKVValueWidth };
+	const int32_t widths[2] = { kKVLabelWidth, kKVValueWidth };
 	std::vector<std::string> lines;
 
 	std::ostringstream titleLine;
@@ -115,7 +115,7 @@ static std::vector<std::string> BuildKVBox(const char* title, const std::vector<
 //여러 박스(BuildKVBox/그룹 테이블 결과)를 가로로 나란히 출력. 줄 수가 다른 박스는 빈 칸으로 높이를 맞춤.
 //boxWidth: blocks 안 모든 줄의 공통 시각적 폭. 박스 스타일마다 폭이 달라서(KV박스/타입박스) 호출자가 넘겨줘야 함
 //- 안 맞으면 먼저 끝난 박스의 빈 자리 패딩이 짧아져 다음 박스가 밀림.
-static void PrintBoxesSideBySide(std::ostream& out, const std::vector<std::vector<std::string>>& blocks, int boxWidth)
+static void PrintBoxesSideBySide(std::ostream& out, const std::vector<std::vector<std::string>>& blocks, int32_t boxWidth)
 {
 	size_t maxLines = 0;
 	for (const std::vector<std::string>& block : blocks)
@@ -173,7 +173,7 @@ std::ostream& operator>>(std::ostream& out, const ClientBot& bot)
 		{ PacketType::LOOT_REQ, "루팅 요청", 3 },
 		{ PacketType::LOOT_RES, "루팅 응답", 3 },
 	};
-	constexpr int packetTrackCnt = sizeof(sPacketTrackTypes) / sizeof(sPacketTrackTypes[0]);
+	constexpr int32_t packetTrackCnt = sizeof(sPacketTrackTypes) / sizeof(sPacketTrackTypes[0]);
 	static const char* kGroupNames[] = { "인증", "캐릭터", "몬스터", "아이템" };
 
 	//초당값 계산용 이전 누적치 (호출자가 monitorThread 하나뿐이므로 static으로 충분)
@@ -214,14 +214,14 @@ std::ostream& operator>>(std::ostream& out, const ClientBot& bot)
 		}),
 	}, kKVBoxWidth);
 
-	constexpr int kItemGroup = 3;	//kGroupNames[3] == "아이템"
-	constexpr int kTypeColWidth = 20;
-	constexpr int kNumColWidth = 10;
-	const int kColWidths[5] = { kTypeColWidth, kNumColWidth, kNumColWidth, kNumColWidth, kNumColWidth };
-	constexpr int kTypeBoxWidth = kTypeColWidth + kNumColWidth * 4 + 6;	//│종류│송신│초당송신│수신│초당수신│ (파이프 6개)
+	constexpr int32_t kItemGroup = 3;	//kGroupNames[3] == "아이템"
+	constexpr int32_t kTypeColWidth = 20;
+	constexpr int32_t kNumColWidth = 10;
+	const int32_t kColWidths[5] = { kTypeColWidth, kNumColWidth, kNumColWidth, kNumColWidth, kNumColWidth };
+	constexpr int32_t kTypeBoxWidth = kTypeColWidth + kNumColWidth * 4 + 6;	//│종류│송신│초당송신│수신│초당수신│ (파이프 6개)
 
 	//그룹 하나(인증/캐릭터/몬스터/아이템)를 박스 테이블 문자열 줄 배열로 생성 (sPacketTrackTypes를 그룹별로 필터링)
-	auto buildGroupLines = [&](int groupId, const char* title) -> std::vector<std::string>
+	auto buildGroupLines = [&](int32_t groupId, const char* title) -> std::vector<std::string>
 	{
 		std::vector<std::string> lines;
 
@@ -241,7 +241,7 @@ std::ostream& operator>>(std::ostream& out, const ClientBot& bot)
 
 		lines.push_back(BuildBorder(kColWidths, 5, "├", "┼", "┤"));
 
-		for (int i = 0; i < packetTrackCnt; ++i)
+		for (int32_t i = 0; i < packetTrackCnt; ++i)
 		{
 			if (sPacketTrackTypes[i].group != groupId)
 			{
@@ -277,7 +277,7 @@ std::ostream& operator>>(std::ostream& out, const ClientBot& bot)
 
 ClientBot::ClientBot()
 	:mPort(0)
-	, wsa(nullptr)
+	, mWsa(nullptr)
 	, mMonitorOn(true)
 	, mAuthWaitCount(0)
 	, mDisconnectCount(0)
@@ -307,23 +307,23 @@ IP_AND_PORT:
 
 		goto IP_AND_PORT;
 	}
-	wsa = new RAIIwsadata();
+	mWsa = new RAIIwsadata();
 
-	int userCnt;
+	int32_t userCnt;
 	startInput(userCnt);
 
 	mThreadCnt = (userCnt - 1) / 64 + 1;
 
-	for (int i = 0; i < mThreadCnt; ++i)
+	for (int32_t i = 0; i < mThreadCnt; ++i)
 	{
 		//마지막 스레드만 나머지를 담당 (예: userCnt=100 → 스레드0: 64, 스레드1: 36)
-		int sessionCnt = (i == mThreadCnt - 1) ? (userCnt - 64 * i) : 64;
+		int32_t sessionCnt = (i == mThreadCnt - 1) ? (userCnt - 64 * i) : 64;
 
 		std::wstring threadName = L"SelectThread";
-		threads[i] = std::thread(&ClientBot::selectThread, this, sessionCnt);
+		mThreads[i] = std::thread(&ClientBot::selectThread, this, sessionCnt);
 		std::wstring str = L"1";
 		threadName += str;
-		SetThreadDescription(threads[i].native_handle(), threadName.c_str());
+		SetThreadDescription(mThreads[i].native_handle(), threadName.c_str());
 	}
 
 	mMonitorThread = std::thread(&ClientBot::monitorThread, this);
@@ -331,16 +331,16 @@ IP_AND_PORT:
 
 ClientBot::~ClientBot()
 {
-	HANDLE Handles[20]{};
+	HANDLE handles[MAX_THREAD_CNT]{};
 	for (int32_t idx = 0; idx < mThreadCnt; ++idx)
 	{
-		Handles[idx] = threads[idx].native_handle();
+		handles[idx] = mThreads[idx].native_handle();
 	}
 
-	WaitForMultipleObjects(mThreadCnt, Handles, true, INFINITE);
+	WaitForMultipleObjects(mThreadCnt, handles, true, INFINITE);
 	for (int32_t idx = 0; idx < mThreadCnt; ++idx)
 	{
-		threads[idx].join();
+		mThreads[idx].join();
 	}
 	mMonitorOn = false;
 	mMonitorThread.join();
@@ -359,7 +359,7 @@ void ClientBot::connectSessions(std::shared_ptr<Session[]>& sessions, int32_t se
 
 	u_long iMode = 1;
 
-	for (int i = 0; i < sessionCnt; ++i)
+	for (int32_t i = 0; i < sessionCnt; ++i)
 	{
 		sessions[i].Init();	//소켓 생성 + 송수신 링버퍼 할당
 		RT_ASSERT(sessions[i].mSock != INVALID_SOCKET, "INVALID_SOCKET");
@@ -368,7 +368,7 @@ void ClientBot::connectSessions(std::shared_ptr<Session[]>& sessions, int32_t se
 		RT_ASSERT(ioctlsocket(sessions[i].mSock, FIONBIO, &iMode) == 0, "ioctlsocket 실패");
 
 		//오류가 발생하지 않으면 connect 는 0을 반환합니다.
-		int retval = connect(sessions[i].mSock, (const sockaddr*)&serverAddr, sizeof(serverAddr));
+		int32_t retval = connect(sessions[i].mSock, (const sockaddr*)&serverAddr, sizeof(serverAddr));
 		InterlockedIncrement64(&mTotalConnectCount);
 		if (retval != 0)
 		{
@@ -398,7 +398,7 @@ void ClientBot::connectSession(std::shared_ptr<Session[]>& sessions, int32_t i)
 	RT_ASSERT(ioctlsocket(sessions[i].mSock, FIONBIO, &iMode) == 0, "ioctlsocket 실패");
 
 	//오류가 발생하지 않으면 connect 는 0을 반환합니다.
-	int retval = connect(sessions[i].mSock, (const sockaddr*)&serverAddr, sizeof(serverAddr));
+	int32_t retval = connect(sessions[i].mSock, (const sockaddr*)&serverAddr, sizeof(serverAddr));
 	InterlockedIncrement64(&mTotalConnectCount);
 	if (retval != 0)
 	{
@@ -420,7 +420,7 @@ bool ClientBot::selectLogic(std::shared_ptr<Session[]>& sessions, int32_t sessio
 	FD_ZERO(&exceptSet);
 	int32_t currentTime = timeGetTime();
 
-	for (int i = 0; i < sessionCnt; ++i)
+	for (int32_t i = 0; i < sessionCnt; ++i)
 	{
 		switch (sessions[i].mSessionState)
 		{
@@ -460,14 +460,14 @@ bool ClientBot::selectLogic(std::shared_ptr<Session[]>& sessions, int32_t sessio
 	}
 
 	timeval time_val{ 0,0 };
-	int retCnt = select(0, &readSet, &writeSet, &exceptSet, &time_val);
+	int32_t retCnt = select(0, &readSet, &writeSet, &exceptSet, &time_val);
 	if (retCnt < 0)
 	{
 		return false;
 	}
 	RT_ASSERT(retCnt != SOCKET_ERROR, "select 실패");
 
-	for (int i = 0; i < sessionCnt; ++i)
+	for (int32_t i = 0; i < sessionCnt; ++i)
 	{
 		if (retCnt == 0)
 		{
@@ -533,8 +533,8 @@ void ClientBot::monitorThread() const
 {
 
 	HWND hwnd = GetConsoleWindow();
-	constexpr int x = 1200;
-	constexpr int y = 50;
+	constexpr int32_t x = 1200;
+	constexpr int32_t y = 50;
 	MoveWindow(hwnd, x, y, 1000, 800, TRUE);
 	system(" mode  con lines=40   cols=150 ");
 	DWORD currentTime = timeGetTime();
@@ -570,7 +570,7 @@ void ClientBot::selectThread(int32_t sessionCnt)
 	DWORD nextTime = startTime + 20;
 	DWORD frameTime = startTime + 1000;
 
-	int frameCnt = 0;
+	int32_t frameCnt = 0;
 
 	while (1)
 	{
@@ -578,7 +578,7 @@ void ClientBot::selectThread(int32_t sessionCnt)
 		startTime = timeGetTime();
 		if (nextTime <= startTime)
 		{
-			for (int i = 0; i < sessionCnt; ++i)
+			for (int32_t i = 0; i < sessionCnt; ++i)
 			{
 				if (sessions[i].mSessionState == eSessionState::AUTHED)
 				{
@@ -616,7 +616,7 @@ void ClientBot::recvPacketProc(Session& session)
 		//서버가 보낸 패킷이 깨졌다면 봇이 판별할 수 있는 가장 이른 지점
 		RT_ASSERT(0 < header.Len, "잘못된 header.Len");
 
-		int packetSize = sizeof(header) + header.Len;
+		int32_t packetSize = sizeof(header) + header.Len;
 		if (session.mRecvSize < packetSize)
 		{
 			break;	//미완성 패킷 : 다음 recv 후 재시도
@@ -630,7 +630,7 @@ void ClientBot::recvPacketProc(Session& session)
 	}
 }
 
-void ClientBot::packetProc(Session& session, const char* payload, int len)
+void ClientBot::packetProc(Session& session, const char* payload, int32_t len)
 {
 	int16_t type;
 	memcpy(&type, payload, sizeof(type));
@@ -715,7 +715,7 @@ void ClientBot::handleFieldAuth(Session& session, const FieldAuthResPayload& res
 			+ " disconnect(" + std::to_string(session.mPos.x) + "," + std::to_string(session.mPos.y) + ")"
 			+ " != loaded(" + std::to_string(res.x) + "," + std::to_string(res.y) + ")"
 			+ " dist=" + std::to_string(dist);
-		RT_ASSERT(dist <= session.mSpeed * ALLOW_DELAY_FRAME, msg);
+		RT_ASSERT(dist <= session.mSpeed * static_cast<float>(ALLOW_DELAY_FRAME), msg);
 	}
 
 	session.ConnectComplete();
@@ -806,7 +806,7 @@ void ClientBot::startInput(int32_t& userCnt)
 {
 userCnt_Input:
 	std::cout << "시작 AccountNo 를 입력해주세요. : ";
-	std::cin >> Session::g_accountNo;
+	std::cin >> Session::mG_accountNo;
 
 	if (std::cin.fail())
 	{

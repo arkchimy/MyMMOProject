@@ -33,8 +33,8 @@ enum class ePlayerState : int8_t
 	Dead,	// Player의 사망.
 };
 
-constexpr int SESSION_SEND_BUFFER_SIZE = 1024;
-constexpr int SESSION_RECV_BUFFER_SIZE = 40960;	//SPAWN_BATCH 최대치(서버 Message MaxSize 3000)보다 크게
+constexpr int32_t SESSION_SEND_BUFFER_SIZE = 1024;
+constexpr int32_t SESSION_RECV_BUFFER_SIZE = 40960;	//SPAWN_BATCH 최대치(서버 Message MaxSize 3000)보다 크게
 
 
 enum class eSessionState
@@ -45,14 +45,19 @@ enum class eSessionState
 	AUTHED,			// FIELD_AUTH_RES 수신, 필드 입장 완료 (readSet 감시)
 };
 
-class Session
+class Session final
 {
 	friend class ClientBot;
 public:
 	Session();
 
+	Session(const Session&) = delete;
+	Session& operator=(const Session&) = delete;
+	Session(Session&&) = delete;
+	Session& operator=(Session&&) = delete;
+
 	void Init();	//소켓 생성
-	void EnqueueSend(const void* data, int size);	//송신 버퍼 뒤에 이어붙임 (실제 send는 select 루프 담당)
+	void EnqueueSend(const void* data, int32_t size);	//송신 버퍼 뒤에 이어붙임 (실제 send는 select 루프 담당)
 	void PostSend();	//writeSet 신호 시 호출 : 보내고 남은 만큼 앞으로 당김
 	bool Recv();		//readSet 신호 시 호출 : 수신 버퍼에 쌓음. false = 연결 끊김
 	
@@ -83,12 +88,12 @@ private:
 	void changeState(const ePlayerState& mode);
 	void selectAction();
 
-	void PostMoveStart(eDirection dir);
-	void PostMoveStop();
-	void PostAttackReq();
-	void PostLootReq();
+	void postMoveStart(eDirection dir);
+	void postMoveStop();
+	void postAttackReq();
+	void postLootReq();
 
-	void PostHeartBeat();
+	void postHeartBeat();
 	void traceMove(const char* str, int8_t on);
 private:
 	SOCKET mSock;
@@ -109,9 +114,9 @@ private:
 	int64_t mAnimFrame;
 
 	char mSendBuffer[SESSION_SEND_BUFFER_SIZE];
-	int mSendSize;	//전송 대기 중인 바이트 수
+	int32_t mSendSize;	//전송 대기 중인 바이트 수
 	char mRecvBuffer[SESSION_RECV_BUFFER_SIZE];
-	int mRecvSize;	//조립 대기 중인 바이트 수
+	int32_t mRecvSize;	//조립 대기 중인 바이트 수
 
 	DWORD mLastTime;
 	ePlayerState mState;
@@ -125,7 +130,7 @@ private:
 	int32_t mHitStunFrame;
 
 	bool mLootRequested;	// LOOT_REQ 보내고 LOOT_RES 대기 중인지
-	int8_t bMove = false;
+	int8_t mBMove = false;
 	int32_t mDeadFrame;
 	int32_t mDisconnectTime;
 	uint32_t mMonsterKillTime;
@@ -134,8 +139,8 @@ private:
 	// FIELD_AUTH_RES를 덮어쓰기 직전까지 mPos엔 disconnect 시점 위치가 그대로 남아있음.
 	// 이 플래그로 "첫 접속(비교 무의미)"과 "재접속(비교 대상 있음)"만 구분.
 	bool mHasDisconnectPos = false;
-public:
-	inline static LONG64 g_accountNo = 0;
+
+	inline static LONG64 mG_accountNo = 0;
 };
 
 

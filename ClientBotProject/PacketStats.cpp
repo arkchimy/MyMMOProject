@@ -4,7 +4,7 @@
 
 namespace stats
 {
-	constexpr int kTableSize = static_cast<int16_t>(PacketType::MAX);
+	constexpr int32_t kTableSize = static_cast<int16_t>(PacketType::MAX);
 
 	static volatile int64_t g_sendCount[kTableSize] = {};
 	static volatile int64_t g_recvCount[kTableSize] = {};
@@ -36,7 +36,7 @@ namespace stats
 	int64_t GetTotalSendCount()
 	{
 		int64_t total = 0;
-		for (int i = 0; i < kTableSize; ++i)
+		for (int32_t i = 0; i < kTableSize; ++i)
 		{
 			total += g_sendCount[i];
 		}
@@ -46,7 +46,7 @@ namespace stats
 	int64_t GetTotalRecvCount()
 	{
 		int64_t total = 0;
-		for (int i = 0; i < kTableSize; ++i)
+		for (int32_t i = 0; i < kTableSize; ++i)
 		{
 			total += g_recvCount[i];
 		}

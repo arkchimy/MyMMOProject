@@ -53,7 +53,7 @@ void fnCDB()
 		그 함수 진입하자마자 이전 실패로 `CDBException`이 던져지므로써 대응을 강제한다.
 	*/
 
-		db.Execute(query);   // 실패해도 여기선 조용함 (bFailed만 세팅됨)
+		db.Execute(query);   // 실패해도 여기선 조용함 (mBFailed만 세팅됨)
 		db.Execute(query);   // ClearError() 안 했으므로 진입하자마자 예외 던짐
 		
 		// ## 로그 파일
@@ -85,7 +85,7 @@ void CDB::myAssert(const bool x, const char* str) const
 }
 void CDB::throwIfFailed()
 {
-	if (bFailed)
+	if (mBFailed)
 	{
 		writeLog("unhandleError.txt");
 		throw CDBException(mLastErrNo, mLastError);
@@ -107,7 +107,7 @@ void CDB::writeLog(const char* fileName) const
 
 void CDB::fail(const char* context)
 {
-	bFailed = true;
+	mBFailed = true;
 	mLastErrNo = mysql_errno(mConn);
 	snprintf(mLastError, CONFIG_MAX_ERROR_LEN, "context : %s  \t errMsg : %s ", context, mysql_error(mConn));
 	writeLog();
@@ -122,7 +122,7 @@ CDB::CDB()
 	static int initVal = DBinit();
 
 	mysql_thread_init();
-	SYSTEMTIME stNowTime;
+	SYSTEMTIME stNowTime{};
 	GetLocalTime(&stNowTime);
 
 	wchar_t* threadDescription = nullptr;
@@ -147,7 +147,7 @@ CDB::CDB()
 	mFilename += ".txt";
 }
 
-bool CDB::Connect(const char* host, const char* user, const char* pass, const char* dbName, int port)
+bool CDB::Connect(const char* host, const char* user, const char* pass, const char* dbName, int32_t port)
 {
 	constexpr const char* Format = "Connect(host=%s, port=%d, db=%s)";
 	throwIfFailed();

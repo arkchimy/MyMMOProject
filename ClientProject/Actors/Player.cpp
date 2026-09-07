@@ -37,8 +37,8 @@ namespace actors
 {
 	void Player::Foo()
 	{
-		int offset = 0;
-		for (int i = 0; i < 8; ++i)
+		int32_t offset = 0;
+		for (int32_t i = 0; i < 8; ++i)
 		{
 			eDirection dir;
 			switch (i)
@@ -99,14 +99,14 @@ namespace actors
 	{
 		PacketType::MOVE_START;
 		Header header{0};
-		header.Len = sizeof(__int16) + sizeof(mCharacterID) + sizeof(mX) + sizeof(mY) + sizeof(mDirection) + sizeof(mSpeed);
+		header.Len = sizeof(int16_t) + sizeof(mCharacterID) + sizeof(mX) + sizeof(mY) + sizeof(mDirection) + sizeof(mSpeed);
 		header.RandKey = 0;
 
 		utility::Message msg;
 		msg.InitMessage(0, 0);
 		msg.PutData(&header, sizeof(header));
-		msg << static_cast<__int16>(PacketType::MOVE_START);
-		msg << mCharacterID << mX << mY << static_cast<__int8>(mDirection) << mSpeed;
+		msg << static_cast<int16_t>(PacketType::MOVE_START);
+		msg << mCharacterID << mX << mY << static_cast<int8_t>(mDirection) << mSpeed;
 		// TODO : 연결이 끊겼을때  대처방안 생각하기.
 		RT_ASSERT(g_Network.Send(msg) == true);
 	}
@@ -115,14 +115,14 @@ namespace actors
 	{
 		PacketType::MOVE_STOP;
 		Header header{0};
-		header.Len = sizeof(__int16) + sizeof(mCharacterID) + sizeof(mX) + sizeof(mY) + sizeof(mDirection);
+		header.Len = sizeof(int16_t) + sizeof(mCharacterID) + sizeof(mX) + sizeof(mY) + sizeof(mDirection);
 		header.RandKey = 0;
 
 		utility::Message msg;
 		msg.InitMessage(0, 0);
 		msg.PutData(&header, sizeof(header));
-		msg << static_cast<__int16>(PacketType::MOVE_STOP);
-		msg << mCharacterID << mX << mY << static_cast<__int8>(mDirection);
+		msg << static_cast<int16_t>(PacketType::MOVE_STOP);
+		msg << mCharacterID << mX << mY << static_cast<int8_t>(mDirection);
 		// TODO : 연결이 끊겼을때  대처방안 생각하기.
 		RT_ASSERT(g_Network.Send(msg) == true);
 	}
@@ -222,14 +222,14 @@ namespace actors
 		else
 		{
 			mState = eActorState::Idle;
-			mbMove = false;
+			mBMove = false;
 			mMoveFrame = 0;
 			mStartX = mX;
 			mStartY = mY;
 		}
 	}
 
-	void Player::OnDamaged(__int32 hp, float x, float y, eDirection direction)
+	void Player::OnDamaged(int32_t hp, float x, float y, eDirection direction)
 	{
 		mHp = hp;
 		mX = x;
@@ -238,7 +238,7 @@ namespace actors
 		mStartY = y;
 		mMoveFrame = 0;
 		mDirection = direction;
-		mbMove = false;
+		mBMove = false;
 
 		if (mHp <= 0)
 		{
@@ -254,7 +254,7 @@ namespace actors
 		}
 	}
 
-	Player::Player(__int64 characterID, float x, float y)
+	Player::Player(int64_t characterID, float x, float y)
 		:Actor(characterID)
 		, mAttackFrame(0)
 		, mHp(PLAYER_MAX_HP)
@@ -284,10 +284,10 @@ namespace actors
 			return false;
 		}
 
-		if (mbMove)
+		if (mBMove)
 		{
 			sendMoveStopPacket();
-			mbMove = false;
+			mBMove = false;
 			mMoveFrame = 0;
 			mStartX = mX;
 			mStartY = mY;

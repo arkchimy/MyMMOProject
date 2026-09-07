@@ -16,11 +16,17 @@ namespace contents
 		Return,//  스폰지역하고 매우 멀어질경우 스폰지역으로 되돌아감.
 	};
 
-	class Monster
+	class Monster final
 	{
 		friend class FieldServer;
 	public:
 		Monster(int64_t monsterID, const map::Position& pos, int8_t monsterType);
+
+		Monster(const Monster&) = delete;
+		Monster& operator=(const Monster&) = delete;
+		Monster(Monster&&) = delete;
+		Monster& operator=(Monster&&) = delete;
+
 		int32_t GetAnimFrame() const { return mAnimFrame; }   // 현재 상태 진입 후 경과 틱수 (상태 전환마다 0으로 리셋)
 		inline eDirection GetDirection() const { return mDirection; }
 		map::Position GetPosition() const { return mPos; }

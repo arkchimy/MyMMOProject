@@ -24,7 +24,7 @@ namespace karfe
 
 namespace actors
 {
-	Monster::Monster(const __int64 monsterId, const float x, const float y, const __int8 monsterType, eDirection direction, __int32 hp, __int32 animFrame)
+	Monster::Monster(const int64_t monsterId, const float x, const float y, const int8_t monsterType, eDirection direction, int32_t hp, int32_t animFrame)
 		: Actor(monsterId)
 		, mMonsterType(monsterType)
 		, mHp(hp)
@@ -47,17 +47,17 @@ namespace actors
 			--mHitTimer;
 			if (mHitTimer == 0)
 			{
-				changeAnimation(mDirection, mbMove ? eActorState::Move : eActorState::Idle);
+				changeAnimation(mDirection, mBMove ? eActorState::Move : eActorState::Idle);
 			}
 			return;
 		}
 
-		if (mbMove)
+		if (mBMove)
 		{
 			moveUpdate();
 		}
 	}
-	void Monster::OnDamaged(__int32 hp, float x, float y, eDirection direction)
+	void Monster::OnDamaged(int32_t hp, float x, float y, eDirection direction)
 	{
 		mHp = hp;
 		mX = x;
@@ -67,7 +67,7 @@ namespace actors
 		mMoveFrame = 0;
 		mDirection = direction;
 
-		mbMove = false;
+		mBMove = false;
 		if (mHp <= 0)
 		{
 			mHitTimer = 0;
@@ -81,8 +81,8 @@ namespace actors
 	}
 	void Monster::loadMonsterSprite()
 	{
-		int offset = 0;
-		for (int i = 0; i < 8; ++i)
+		int32_t offset = 0;
+		for (int32_t i = 0; i < 8; ++i)
 		{
 			eDirection dir;
 			switch (i)

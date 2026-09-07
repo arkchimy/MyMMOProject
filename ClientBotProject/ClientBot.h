@@ -12,6 +12,8 @@
 class RAIIwsadata;
 class Session;
 
+constexpr int32_t MAX_THREAD_CNT = 20;
+
 class ClientBot final
 {
 public:
@@ -19,10 +21,10 @@ public:
 	~ClientBot();
 
 	ClientBot(const ClientBot&) = delete;
-	ClientBot(const ClientBot&&) = delete;
+	ClientBot(ClientBot&&) = delete;
 
 	ClientBot& operator= (const ClientBot&) = delete;
-	ClientBot& operator= (const ClientBot&&) = delete;
+	ClientBot& operator=(ClientBot&&) = delete;
 
 private:
 	void selectThread(int32_t sessionCnt);
@@ -35,7 +37,7 @@ private:
 	void monitorThread() const;
 
 	void recvPacketProc(Session& session);						//수신 버퍼에서 완성 패킷 조립
-	void packetProc(Session& session, const char* payload, int len);	//완성 패킷 type별 처리
+	void packetProc(Session& session, const char* payload, int32_t len);	//완성 패킷 type별 처리
 	void handleFieldAuth(Session& session, const FieldAuthResPayload& res);
 	void handleMonsterMoveStop(Session& session,const MoveStopPayload& packet);
 	void handleMonsterDamaged(Session& session, const MonsterDamaged& packet);
@@ -48,11 +50,11 @@ private:
 	friend std::ostream& operator>>(std::ostream& out, const ClientBot& bot);
 
 private:
-	std::thread threads[20];
+	std::thread mThreads[MAX_THREAD_CNT];
 	int32_t mThreadCnt;
 	std::thread mMonitorThread;
 	bool mMonitorOn;
-	RAIIwsadata* wsa;
+	RAIIwsadata* mWsa;
 	char mIPAddress[16];
 	short mPort;
 

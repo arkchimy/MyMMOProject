@@ -23,7 +23,7 @@ namespace scene
 	}
 	LoginScene::~LoginScene()
 	{
-		for (int i = 0; i < LOGIN_CONFIG_UI_LEN; ++i)
+		for (int32_t i = 0; i < LOGIN_CONFIG_UI_LEN; ++i)
 		{
 			if (mUIArr != nullptr)
 			{
@@ -76,14 +76,14 @@ namespace scene
 				}
 			}
 		//}
-		for (int i = 0; i < LOGIN_CONFIG_UI_LEN; ++i)
+		for (int32_t i = 0; i < LOGIN_CONFIG_UI_LEN; ++i)
 		{
 			mUIArr[i]->Update();
 		}
 	}
 	void LoginScene::render()
 	{
-		for (int i = 0; i < LOGIN_CONFIG_UI_LEN; ++i)
+		for (int32_t i = 0; i < LOGIN_CONFIG_UI_LEN; ++i)
 		{
 			mUIArr[i]->Render();
 		}
@@ -92,9 +92,9 @@ namespace scene
 	{
 		return mNextScene;
 	}
-	bool LoginScene::PacketProc(utility::Message& msg)
+	bool LoginScene::packetProc(utility::Message& msg)
 	{
-		__int16 type;
+		int16_t type;
 		msg >> type;
 
 		switch ((PacketType)type)
@@ -116,12 +116,12 @@ namespace scene
 	{
 		PacketType::FIELD_AUTH_REQ;
 		Header header;
-		header.Len = sizeof(__int16) + sizeof(mID) + sizeof(mPW);
+		header.Len = sizeof(int16_t) + sizeof(mID) + sizeof(mPW);
 		header.RandKey = 0;
 
 		utility::Message msg;
 		msg.PutData(&header, sizeof(header));
-		msg << static_cast<__int16>(PacketType::FIELD_AUTH_REQ);
+		msg << static_cast<int16_t>(PacketType::FIELD_AUTH_REQ);
 		msg.PutData(const_cast<char*>(id), sizeof(mID));
 		msg.PutData(const_cast<char*>(pw), sizeof(mPW));
 		if (g_Network.Send(msg))
@@ -132,7 +132,7 @@ namespace scene
 	void LoginScene::onAuthFailRes(utility::Message& msg)
 	{
 		PacketType::FIELD_AUTH_FAIL;
-		__int8 result;
+		int8_t result;
 		msg >> result;
 		mSendFlag = false;
 		g_Network.Disconnect();
@@ -140,7 +140,7 @@ namespace scene
 	void LoginScene::onAuthRes(utility::Message& msg)
 	{
 		PacketType::FIELD_AUTH_RES;
-		__int64 characterID;
+		int64_t characterID;
 		float posX;
 		float posY;
 

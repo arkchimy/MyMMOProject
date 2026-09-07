@@ -28,10 +28,10 @@ namespace contents
 	thread_local std::unordered_set<FieldItem*> itemSectors[SECTOR_ROW_CNT][SECTOR_COL_CNT];
 
 	FieldServer::FieldServer()
-		: mbOn(true)
+		: mBOn(true)
 		, mCharacterID(0)
 		, mItemUniqueID(0)
-		, bMonitorOn(false)
+		, mBMonitorOn(false)
 		, mPlayerCnt(0)
 		, mDisconnect_Sync(0)
 		, mDisconnect_HeartBeat(0)
@@ -46,16 +46,16 @@ namespace contents
 		, mProcessDelaySum(0)
 		, mDisconnect_SendQisFull(0)
 	{
-		hAuthEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		mHAuthEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
-		for (int i = 0; i < CONFIG_FIELD_SIZE; ++i)
+		for (int32_t i = 0; i < CONFIG_FIELD_SIZE; ++i)
 		{
 			mMsgQ[i] = new utility::MyRingBuffer();
 			mNotifyMsgQ[i] = new utility::MyRingBuffer();
 			mDBReqQ[i] = new utility::MyRingBuffer();
 			mDBResQ[i] = new utility::MyRingBuffer();
-			hDBEvent[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-			hDBFinishEvent[i] = CreateEvent(nullptr, true, FALSE, nullptr);
+			mHDBEvent[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			mHDBFinishEvent[i] = CreateEvent(nullptr, true, FALSE, nullptr);
 		}
 		nearSectorInitalization();
 	}
@@ -63,9 +63,9 @@ namespace contents
 	{
 		stop();
 
-		mbOn = false;
+		mBOn = false;
 
-		for (int i = 0; i < CONFIG_FIELD_SIZE; ++i)
+		for (int32_t i = 0; i < CONFIG_FIELD_SIZE; ++i)
 		{
 			// fieldThread가 먼저 완전히 끝나야 함 (종료 직전 마지막으로 mDBReqQ에 넣는 job까지 다 넣고 끝남)
 			if (mFieldThread[i].joinable())
@@ -74,35 +74,35 @@ namespace contents
 			}
 
 			// fieldThread가 끝난 뒤에야 dbThread를 깨워서 남은 mDBReqQ를 다 비우게 하고 종료
-			SetEvent(hDBEvent[i]);
+			SetEvent(mHDBEvent[i]);
 			if (mDBThread[i].joinable())
 			{
 				mDBThread[i].join();
 			}
-			CloseHandle(hDBEvent[i]);
-			CloseHandle(hDBFinishEvent[i]);
+			CloseHandle(mHDBEvent[i]);
+			CloseHandle(mHDBFinishEvent[i]);
 		}
 
-		SetEvent(hAuthEvent);
+		SetEvent(mHAuthEvent);
 		if (mAuthThread.joinable())
 		{
 			mAuthThread.join();
 		}	
 
-		for (int i = 0; i < CONFIG_FIELD_SIZE; ++i)
+		for (int32_t i = 0; i < CONFIG_FIELD_SIZE; ++i)
 		{
 			delete mMsgQ[i];
 			delete mNotifyMsgQ[i];
 			delete mDBReqQ[i];
 			delete mDBResQ[i];
 		}
-		bMonitorOn = false;
+		mBMonitorOn = false;
 		if (mMonitorThread.joinable())
 		{
 			mMonitorThread.join();
 		}
 
-		CloseHandle(hAuthEvent);
+		CloseHandle(mHAuthEvent);
 		
 	}
 	void FieldServer::Start()
@@ -112,9 +112,9 @@ namespace contents
 	}
 	void FieldServer::createThread()
 	{
-		bMonitorOn = true;
+		mBMonitorOn = true;
 		mMonitorThread = std::thread(&FieldServer::monitorThread, this);
-		for (int idx = 0; idx < CONFIG_FIELD_SIZE; ++idx)
+		for (int32_t idx = 0; idx < CONFIG_FIELD_SIZE; ++idx)
 		{
 			mFieldThread[idx] = std::thread(&FieldServer::fieldThread, this, idx);
 			std::wstring threadName = L"FieldThread" + std::to_wstring(idx);
@@ -140,7 +140,7 @@ namespace contents
 				{
 					int8_t dx[] = { -1,-1,-1,0,0,0, +1,+1,+1 };
 					int8_t dy[] = { -1,0,+1,-1,0,+1,-1,+0,+1 };
-					for (int i = 0; i < 9; ++i)
+					for (int32_t i = 0; i < 9; ++i)
 					{
 						int8_t col = center.x + dx[i];
 						int8_t row = center.y + dy[i];
@@ -177,14 +177,14 @@ namespace contents
 		Player* player = new Player(addr, sessionID);
 		player->mLastTime = timeGetTime();
 		network::Session* const session = FindSessionOrNull(sessionID);
-		session->SetmPtr(player);
+		session->SetPtr(player);
 		{
 			std::lock_guard<std::shared_mutex> xlock(mUnAuthLock);
 			MY_ASSERT(mUnAuthSessions.find(sessionID.Value) == mUnAuthSessions.end(), "세션아이디Key값이 이미존재한다");
 			mUnAuthSessions.insert({ sessionID.Value,player });
 			++mPlayerCnt;
 		}
-		SetEvent(hAuthEvent);
+		SetEvent(mHAuthEvent);
 	}
 	void FieldServer::onRecv(utility::Message* msg)
 	{
@@ -192,7 +192,7 @@ namespace contents
 		sessionID.Value = msg->GetOwnerID();
 		network::Session* const session = FindSessionOrNull(sessionID);
 		{
-			Player* player = static_cast<Player*>(session->GetmPtr());
+			Player* player = static_cast<Player*>(session->GetPtr());
 			MY_ASSERT(player != nullptr, "Player 생성자 실패");
 			player->EnQueueMsg(msg);
 
@@ -216,11 +216,11 @@ namespace contents
 		// Thread가 스스로 Player를 제거하도록 blive플래그를 꺼줌
 		network::Session* const session = FindSessionOrNull(sessionID);
 		{
-			Player* player = static_cast<Player*>(session->GetmPtr());
+			Player* player = static_cast<Player*>(session->GetPtr());
 			// 시나리오 : acceptEx가 걸려있는 서버가 session을 할당해제 함.
 			if (player != nullptr)
 			{
-				player->bConnect = false;
+				player->mBConnect = false;
 			}
 		}
 	}
@@ -240,11 +240,11 @@ namespace contents
 		while (true)
 		{
 			// 서버가 종료절차를 하고있고, player가 없다면 나가기
-			if (mbOn == false && mAccountsHash.size() == 0)
+			if (mBOn == false && mAccountsHash.size() == 0)
 			{
 				break;
 			}
-			WaitForSingleObject(hAuthEvent, 500);
+			WaitForSingleObject(mHAuthEvent, 500);
 			// mUnAuthSessions에서 새 세션 players에 등록
 			{
 				std::lock_guard<std::shared_mutex> rlock(mUnAuthLock);
@@ -279,7 +279,7 @@ namespace contents
 			}
 
 			// Field →Auth 알림 처리 (추가)
-			for (int idx = 0; idx < CONFIG_FIELD_SIZE; ++idx)
+			for (int32_t idx = 0; idx < CONFIG_FIELD_SIZE; ++idx)
 			{
 				char* f = mNotifyMsgQ[idx]->GetFrontPtr();
 				char* r = mNotifyMsgQ[idx]->GetRearPtr();
@@ -301,7 +301,7 @@ namespace contents
 			heartBeatForUnAuthSession(CONFIG_AUTH_FIELD_IDX);
 		}
 	}
-	void FieldServer::heartBeatForUnAuthSession(int fieldIdx)
+	void FieldServer::heartBeatForUnAuthSession(int32_t fieldIdx)
 	{
 		// TODO: 클라이언트가 하트비트 쏠떄까지 비활성화
 		if (fieldIdx != CONFIG_AUTH_FIELD_IDX)
@@ -312,7 +312,7 @@ namespace contents
 		for (auto& pair : players)
 		{
 			Player& player = *pair.second;
-			if (player.bConnect)
+			if (player.mBConnect)
 			{
 				// CPU가 달라서 존재하는 경우
 				if (currentTime <= player.mLastTime)
@@ -353,7 +353,7 @@ namespace contents
 			{
 				return false;
 			}
-			for (int i = 0; id[i] != '\0'; ++i)
+			for (int32_t i = 0; id[i] != '\0'; ++i)
 			{
 				if (!isalnum(static_cast<unsigned char>(id[i])))
 				{
@@ -541,7 +541,7 @@ namespace contents
 		_interlockedincrement64(&mFieldMessageQCnt[targetField]);
 	}
 
-	void FieldServer::spawnMonsters(int fieldIdx)
+	void FieldServer::spawnMonsters(int32_t fieldIdx)
 	{
 		srand(5);
 		int64_t monsterId = 0;
@@ -549,9 +549,9 @@ namespace contents
 		{
 			for (int8_t col = 0; col < SECTOR_COL_CNT; ++col)
 			{
-				int cnt = rand() % 2; // 섹터당 0~1마리
+				int32_t cnt = rand() % 2; // 섹터당 0~1마리
 
-				for (int i = 0; i < cnt; ++i)
+				for (int32_t i = 0; i < cnt; ++i)
 				{
 					map::Position pos{
 						static_cast<float>(col * SECTOR_WORLD_W + rand() % SECTOR_WORLD_W),
@@ -620,7 +620,7 @@ namespace contents
 		getAroundSectors(closestPlayer->mCurrentSector, targetNearSector);
 		broadcastCharacterDamaged(*closestPlayer, monster, targetNearSector);
 	}
-	void FieldServer::fieldThread(int fieldIdx)
+	void FieldServer::fieldThread(int32_t fieldIdx)
 	{
 		CProfileRegistry::GetInstance().RegistProfiler(&manager);
 		spawnMonsters(fieldIdx);
@@ -645,9 +645,9 @@ namespace contents
 				// 서버 종료를 하더라도  메세지를 전부 비우고하자.
 				if (useSize == 0)
 				{
-					if (players.size() == 0 && mbOn == false)
+					if (players.size() == 0 && mBOn == false)
 					{
-						SetEvent(hDBFinishEvent[fieldIdx]);
+						SetEvent(mHDBFinishEvent[fieldIdx]);
 						break;
 					}
 				}
@@ -699,7 +699,7 @@ namespace contents
 			}
 		}
 	}
-	void FieldServer::fieldUpdate(int fieldIdx)
+	void FieldServer::fieldUpdate(int32_t fieldIdx)
 	{
 		// Player들의 이동 로직.
 		for (auto& element : players)
@@ -820,7 +820,7 @@ namespace contents
 		}
 	}
 
-	void FieldServer::playerProc(int fieldidx, DWORD startTime)
+	void FieldServer::playerProc(int32_t fieldidx, DWORD startTime)
 	{
 		// player 메세지 처리
 		int32_t playerMsgCnt = 0;
@@ -845,9 +845,9 @@ namespace contents
 					break;
 				}
 			}
-			if (mbOn == false)
+			if (mBOn == false)
 			{
-				player.bConnect = false;
+				player.mBConnect = false;
 			}
 
 		}
@@ -935,7 +935,7 @@ namespace contents
 			monster.mBeforeDirection = monster.mDirection;
 		}
 	}
-	void FieldServer::fieldPacketProc(int fieldIdx, utility::Message& msg)
+	void FieldServer::fieldPacketProc(int32_t fieldIdx, utility::Message& msg)
 	{
 		network::SeqAndIdx seqID{ 0 };
 		seqID.Value = msg.GetOwnerID();
@@ -954,7 +954,7 @@ namespace contents
 			MY_ASSERT(false, "현재 테스트에서 일어나지않음. 클라이언트의 조작된 패킷");
 		}
 	}
-	void FieldServer::handleRegisterPlayer(int fieldIdx, utility::Message& msg)
+	void FieldServer::handleRegisterPlayer(int32_t fieldIdx, utility::Message& msg)
 	{
 		Player* enterPlayer = nullptr;
 		msg.GetData(&enterPlayer, sizeof(Player*));
@@ -1274,7 +1274,7 @@ namespace contents
 			player.mPendingAttackTargets.push_back(monsterId);
 		}
 	}
-	void FieldServer::processPlayerAttackHit(Player& player, int fieldIdx)
+	void FieldServer::processPlayerAttackHit(Player& player, int32_t fieldIdx)
 	{
 		float rangeLen = 0.f;
 		int16_t maxTargetCnt = 0;
@@ -1462,7 +1462,7 @@ namespace contents
 		}
 	}
 
-	void FieldServer::dbThread(int fieldIdx)
+	void FieldServer::dbThread(int32_t fieldIdx)
 	{
 		// CDB 생성자가 GetCurrentThread()로 이름을 읽으므로, CDB db; 보다 반드시 먼저 설정
 		std::wstring threadName = L"DBThread" + std::to_wstring(fieldIdx);
@@ -1479,7 +1479,7 @@ namespace contents
 		redisClient.connect(CONFIG_REDIS_IP, CONFIG_REDIS_PORT);
 
 		//
-		const HANDLE handles[2] = { hDBEvent[fieldIdx], hDBFinishEvent[fieldIdx] };
+		const HANDLE handles[2] = { mHDBEvent[fieldIdx], mHDBFinishEvent[fieldIdx] };
 		while (true)
 		{
 			// WaitAll false경우 반환 값에서 WAIT_OBJECT_0 뺀 값은 대기를 충족하는 개체의 배열 인덱스를 나타냅니다.
@@ -1620,7 +1620,7 @@ namespace contents
 		}
 	}
 
-	void FieldServer::requestPositionSave(int fieldIdx, Player& player)
+	void FieldServer::requestPositionSave(int32_t fieldIdx, Player& player)
 	{
 		MY_ASSERT((player.mDBRequestCnt & DB_POSITION_SAVE_PENDING_BIT) == 0, "이미 저장 요청을 보낸 Player에게 중복 요청");
 
@@ -1630,28 +1630,28 @@ namespace contents
 		mDBReqQ[fieldIdx]->Enqueue(&job, sizeof(job)); // job 자체(객체 내용)가 아니라 job이 가리키는 주소값을 큐에 실어야 함
 		_interlockedincrement64(&mDBMessageQCnt[fieldIdx]);
 		player.mDBRequestCnt |= DB_POSITION_SAVE_PENDING_BIT;
-		SetEvent(hDBEvent[fieldIdx]);
+		SetEvent(mHDBEvent[fieldIdx]);
 	}
 
-	void FieldServer::requestKillCountUpdate(int fieldIdx, Player& player, int64_t killCnt)
+	void FieldServer::requestKillCountUpdate(int32_t fieldIdx, Player& player, int64_t killCnt)
 	{
 		DBKillCountUpdate* job = MY_NEW DBKillCountUpdate(player.mSeqID.Value, player.mAccountNo, player.mNickname, killCnt);
 
 		mDBReqQ[fieldIdx]->Enqueue(&job, sizeof(job)); // job 자체가 아니라 job이 가리키는 주소값을 큐에 실어야 함
 		_interlockedincrement64(&mDBMessageQCnt[fieldIdx]);
-		SetEvent(hDBEvent[fieldIdx]);
+		SetEvent(mHDBEvent[fieldIdx]);
 	}
 
-	void FieldServer::requestRankingQuery(int fieldIdx, Player& player)
+	void FieldServer::requestRankingQuery(int32_t fieldIdx, Player& player)
 	{
 		DBRankingQuery* job = MY_NEW DBRankingQuery(player.mSeqID.Value, player.mAccountNo, player.mNickname);
 
 		mDBReqQ[fieldIdx]->Enqueue(&job, sizeof(job)); // job 자체가 아니라 job이 가리키는 주소값을 큐에 실어야 함
 		_interlockedincrement64(&mDBMessageQCnt[fieldIdx]);
-		SetEvent(hDBEvent[fieldIdx]);
+		SetEvent(mHDBEvent[fieldIdx]);
 	}
 
-	void FieldServer::dbResultPacketProc(int fieldIdx)
+	void FieldServer::dbResultPacketProc(int32_t fieldIdx)
 	{
 		char* f = mDBResQ[fieldIdx]->GetFrontPtr();
 		char* r = mDBResQ[fieldIdx]->GetRearPtr();
@@ -2070,18 +2070,18 @@ namespace contents
 			}
 		}
 	}
-	void FieldServer::checkDisConnectedAndLeavePlayer(int fieldIdx)
+	void FieldServer::checkDisConnectedAndLeavePlayer(int32_t fieldIdx)
 	{
 		int64_t disconnectSession[CONFIG_DISCONNECT_AND_LEAVE_CAP]{ 0 };
-		int disconnectCnt = 0;
+		int32_t disconnectCnt = 0;
 		int64_t leaveFieldSession[CONFIG_DISCONNECT_AND_LEAVE_CAP]{ 0 };
-		int leaveCnt = 0;
+		int32_t leaveCnt = 0;
 
 		for (auto iter = players.begin(); iter != players.end(); ++iter)
 		{
 			Player& player = *iter->second;
 			int64_t seqID = player.mSeqID.Value;
-			if (!player.bConnect)
+			if (!player.mBConnect)
 			{
 				disconnectSession[disconnectCnt++] = seqID;
 			}
@@ -2095,7 +2095,7 @@ namespace contents
 			}
 		}
 		// 연결 끊김이 감지된 session을 DB에 위치를 저장 후 끊기.
-		for (int i = 0; i < disconnectCnt; ++i)
+		for (int32_t i = 0; i < disconnectCnt; ++i)
 		{
 			//Field 쓰레드라면 주변 세션에게 제거 메세지.
 			auto iter = players.find(disconnectSession[i]);
@@ -2138,7 +2138,7 @@ namespace contents
 			}
 			players.erase(disconnectSession[i]);
 		}
-		for (int i = 0; i < leaveCnt; ++i)
+		for (int32_t i = 0; i < leaveCnt; ++i)
 		{
 			//Field 쓰레드라면 주변 세션에게 제거 메세지.
 			auto iter = players.find(leaveFieldSession[i]);
@@ -2168,7 +2168,7 @@ namespace contents
 			enterField(&player, player.mNextFieldID);
 		}
 	}
-	void FieldServer::notifyDisconnect(int fieldIdx, int64_t accountNo)
+	void FieldServer::notifyDisconnect(int32_t fieldIdx, int64_t accountNo)
 	{
 		utility::Message* msg = MY_NEW utility::Message();
 		msg->InitMessage(0, 0);
@@ -2177,9 +2177,9 @@ namespace contents
 
 		_InterlockedIncrement64(&mAuthMessageQCnt);
 		mNotifyMsgQ[fieldIdx]->Enqueue(&msg, sizeof(utility::Message*));
-		SetEvent(hAuthEvent);
+		SetEvent(mHAuthEvent);
 	}
-	void FieldServer::notifyMoveField(int fieldIdx, int64_t accountNo, int32_t targetFieldIdx)
+	void FieldServer::notifyMoveField(int32_t fieldIdx, int64_t accountNo, int32_t targetFieldIdx)
 	{
 		utility::Message* msg = MY_NEW utility::Message();
 		msg->InitMessage(0, 0);
@@ -2189,7 +2189,7 @@ namespace contents
 
 		_InterlockedIncrement64(&mAuthMessageQCnt);
 		mNotifyMsgQ[fieldIdx]->Enqueue(&msg, sizeof(utility::Message*));
-		SetEvent(hAuthEvent);
+		SetEvent(mHAuthEvent);
 	}
 	void FieldServer::authNotifyPacketProc(utility::Message& msg)
 	{
@@ -2230,8 +2230,8 @@ namespace contents
 
 	void FieldServer::calcSector(const map::Position& pos, __out map::Sector& newSector)
 	{
-		int col = (int)(pos.x / SECTOR_WORLD_W);
-		int row = (int)(pos.y / SECTOR_WORLD_H);
+		int32_t col = (int32_t)(pos.x / SECTOR_WORLD_W);
+		int32_t row = (int32_t)(pos.y / SECTOR_WORLD_H);
 
 		col = std::clamp(col, 0, SECTOR_COL_CNT - 1);
 		row = std::clamp(row, 0, SECTOR_ROW_CNT - 1);
@@ -2802,14 +2802,14 @@ namespace contents
 	{
 		HWND hwnd = GetConsoleWindow();
 		SetConsoleOutputCP(CP_UTF8);
-		constexpr int x = 50;
-		constexpr int y = 50;
+		constexpr int32_t x = 50;
+		constexpr int32_t y = 50;
 		MoveWindow(hwnd, x, y, 40, 150, TRUE);
 		system(" mode  con lines=40   cols=150 ");
 
 		DWORD currentTime = timeGetTime();
 		DWORD nextTime = currentTime + 1000;
-		while (bMonitorOn)
+		while (mBMonitorOn)
 		{
 			currentTime = timeGetTime();
 			if (nextTime <= currentTime)
@@ -2826,9 +2826,9 @@ namespace contents
 	}
 	//UTF-8 한글(3바이트, 화면 2칸)과 setw()의 바이트 기준 패딩이 어긋나는 걸 보정.
 	//한글 글자 수만큼 setw에 더해줘야 화면상 실제 폭이 width에 맞춰짐.
-	static int KoreanPad(const char* str, int width)
+	static int32_t KoreanPad(const char* str, int32_t width)
 	{
-		int extra = 0;
+		int32_t extra = 0;
 		for (const unsigned char* p = reinterpret_cast<const unsigned char*>(str); *p; ++p)
 		{
 			if ((*p & 0xF0) == 0xE0)	//UTF-8 3바이트 시퀀스 시작 바이트 (한글 음절 범위)
@@ -2840,20 +2840,20 @@ namespace contents
 	}
 
 	//box-drawing 문자(─│┌┬┐├┼┤└┴┘)는 UTF-8로 3바이트지만 화면 폭은 1칸이라 KoreanPad 보정이 필요 없음.
-	static std::string HLine(int width, const char* seg)
+	static std::string HLine(int32_t width, const char* seg)
 	{
 		std::string line;
-		for (int i = 0; i < width; ++i)
+		for (int32_t i = 0; i < width; ++i)
 		{
 			line += seg;
 		}
 		return line;
 	}
 
-	static std::string BuildBorder(const int* widths, int colCount, const char* left, const char* mid, const char* right)
+	static std::string BuildBorder(const int32_t* widths, int32_t colCount, const char* left, const char* mid, const char* right)
 	{
 		std::string line = left;
-		for (int i = 0; i < colCount; ++i)
+		for (int32_t i = 0; i < colCount; ++i)
 		{
 			line += HLine(widths[i], "─");
 			line += (i + 1 < colCount ? mid : right);
@@ -2868,14 +2868,14 @@ namespace contents
 	};
 
 	//4개 박스를 한 줄에 나란히 배치하기 위해 폭을 고정값으로 공유 (박스마다 폭이 다르면 옆으로 못 붙임)
-	constexpr int kKVLabelWidth = 18;
-	constexpr int kKVValueWidth = 12;
-	constexpr int kKVBoxWidth = kKVLabelWidth + kKVValueWidth + 3;	//│라벨│값│
+	constexpr int32_t kKVLabelWidth = 18;
+	constexpr int32_t kKVValueWidth = 12;
+	constexpr int32_t kKVBoxWidth = kKVLabelWidth + kKVValueWidth + 3;	//│라벨│값│
 
 	//"항목/값" 2열 박스 테이블을 한 줄씩 문자열로 만들어 반환 (직접 출력하지 않음 - 옆 박스와 나란히 찍기 위해)
 	static std::vector<std::string> BuildKVBox(const char* title, const std::vector<KVRow>& rows)
 	{
-		const int widths[2] = { kKVLabelWidth, kKVValueWidth };
+		const int32_t widths[2] = { kKVLabelWidth, kKVValueWidth };
 		std::vector<std::string> lines;
 
 		std::ostringstream titleLine;
@@ -2906,7 +2906,7 @@ namespace contents
 	//여러 박스(BuildKVBox 결과)를 가로로 나란히 출력. 줄 수가 다른 박스는 빈 칸으로 높이를 맞춤.
 	//boxWidth: blocks 안 모든 줄의 공통 시각적 폭. 박스 스타일마다 폭이 달라서(KV박스 33, 타입박스 66)
 	//호출자가 자기 폭을 넘겨줘야 함 - 안 맞으면 먼저 끝난 박스의 빈 자리 패딩이 짧아져 다음 박스가 밀림.
-	static void PrintBoxesSideBySide(std::ostream& out, const std::vector<std::vector<std::string>>& blocks, int boxWidth)
+	static void PrintBoxesSideBySide(std::ostream& out, const std::vector<std::vector<std::string>>& blocks, int32_t boxWidth)
 	{
 		size_t maxLines = 0;
 		for (const std::vector<std::string>& block : blocks)
@@ -2979,11 +2979,11 @@ namespace contents
 			{ "플레이어큐", std::to_string(server.mPlayerMessageQCnt) },
 			{ "평균처리지연", delayStream.str() },
 		};
-		for (int i = 0; i < CONFIG_FIELD_SIZE; ++i)
+		for (int32_t i = 0; i < CONFIG_FIELD_SIZE; ++i)
 		{
 			msgQRows.push_back({ "필드큐[" + std::to_string(i) + "]", std::to_string(server.mFieldMessageQCnt[i]) });
 		}
-		for (int i = 0; i < CONFIG_FIELD_SIZE; ++i)
+		for (int32_t i = 0; i < CONFIG_FIELD_SIZE; ++i)
 		{
 			msgQRows.push_back({ "DB큐[" + std::to_string(i) + "]", std::to_string(server.mDBMessageQCnt[i]) });
 		}
@@ -3009,7 +3009,7 @@ namespace contents
 			BuildKVBox("MsgQ", msgQRows),
 			}, kKVBoxWidth);
 
-		static const struct { PacketType type; const char* name; int group; } kTrackedTypes[] =
+		static const struct { PacketType type; const char* name; int32_t group; } kTrackedTypes[] =
 		{
 			{ PacketType::FIELD_AUTH_REQ, "인증 요청", 0 },
 			{ PacketType::FIELD_AUTH_RES, "인증 성공", 0 },
@@ -3035,19 +3035,19 @@ namespace contents
 			{ PacketType::LOOT_REQ, "루팅 요청", 3 },
 			{ PacketType::LOOT_RES, "루팅 응답", 3 },
 		};
-		constexpr int kTrackedCount = sizeof(kTrackedTypes) / sizeof(kTrackedTypes[0]);
+		constexpr int32_t kTrackedCount = sizeof(kTrackedTypes) / sizeof(kTrackedTypes[0]);
 		static const char* kGroupNames[] = { "인증", "캐릭터", "몬스터", "아이템" };
 		static int64_t prevTypeSend[kTrackedCount] = {};
 		static int64_t prevTypeRecv[kTrackedCount] = {};
-		constexpr int kItemGroup = 3;	//kGroupNames[3] == "아이템"
+		constexpr int32_t kItemGroup = 3;	//kGroupNames[3] == "아이템"
 
-		constexpr int kTypeColWidth = 20;
-		constexpr int kNumColWidth = 10;
-		const int kColWidths[5] = { kTypeColWidth, kNumColWidth, kNumColWidth, kNumColWidth, kNumColWidth };
-		constexpr int kTypeBoxWidth = kTypeColWidth + kNumColWidth * 4 + 6;	//│종류│송신│초당송신│수신│초당수신│ (파이프 6개)
+		constexpr int32_t kTypeColWidth = 20;
+		constexpr int32_t kNumColWidth = 10;
+		const int32_t kColWidths[5] = { kTypeColWidth, kNumColWidth, kNumColWidth, kNumColWidth, kNumColWidth };
+		constexpr int32_t kTypeBoxWidth = kTypeColWidth + kNumColWidth * 4 + 6;	//│종류│송신│초당송신│수신│초당수신│ (파이프 6개)
 
 		//그룹 하나(인증/캐릭터/몬스터/아이템)를 박스 테이블 문자열 줄 배열로 생성 (kTrackedTypes를 그룹별로 필터링)
-		auto buildGroupLines = [&](int groupId, const char* title) -> std::vector<std::string>
+		auto buildGroupLines = [&](int32_t groupId, const char* title) -> std::vector<std::string>
 			{
 				std::vector<std::string> lines;
 
@@ -3067,7 +3067,7 @@ namespace contents
 
 				lines.push_back(BuildBorder(kColWidths, 5, "├", "┼", "┤"));
 
-				for (int i = 0; i < kTrackedCount; ++i)
+				for (int32_t i = 0; i < kTrackedCount; ++i)
 				{
 					if (kTrackedTypes[i].group != groupId)
 					{

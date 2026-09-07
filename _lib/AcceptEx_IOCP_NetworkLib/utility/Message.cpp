@@ -6,7 +6,7 @@
 #include "Message.h"
 #include "Header.h"
 
-static int g_mode = 0;
+static int32_t g_mode = 0;
 
 static const wchar_t *format[utility::eTag::MAX] =
     {
@@ -30,7 +30,7 @@ static const wchar_t *Stringformat[utility::eTag::MAX] =
 namespace utility
 {
 Message::Message()
-    : mOwnerID(GetCurrentThreadId()), BLastMessage(false)
+    : mOwnerID(GetCurrentThreadId()), mBLastMessage(false)
 {
     mEnd = mBegin + mSize;
     mFrontPtr = mBegin;
@@ -44,19 +44,19 @@ Message::~Message()
     mRearPtr = mBegin;
     mEnd = mBegin + mSize;
 
-    _interlockedexchange64(&UseCnt, 1);
+    _interlockedexchange64(&mUseCnt, 1);
 }
 
-void Message::InitMessage(__int64 sessionID,__int8 randKey)
+void Message::InitMessage(int64_t sessionID,int8_t randKey)
 {
- 
+
     mOwnerID = sessionID;
     mRandKey = randKey;
     mSize = (DWORD)eBufferSize::BufferSize;
     mFrontPtr = mBegin;
     mRearPtr = mBegin;
     mEnd = mBegin + mSize;
-    BLastMessage = false;
+    mBLastMessage = false;
     mRequestTime = timeGetTime();
 }
 
@@ -122,9 +122,9 @@ void Message::Peek(char *out, SerializeBufferSize size) const
     memcpy(out, f, size);
 }
 
-void Message::HexLog(eTag tag, const wchar_t *filename)
+void Message::HexLog(eTag tag, const wchar_t *filename) const
 {
-    int current = 0;
+    int32_t current = 0;
 
     wchar_t *hexBuffer = (wchar_t *)malloc((DWORD)eBufferSize::MaxSize * 3 + 4);
     wchar_t *printBuffer = (wchar_t *)malloc((DWORD)eBufferSize::MaxSize * 4);
@@ -181,7 +181,7 @@ void Message::HexLog(eTag tag, const wchar_t *filename)
     free(printBuffer);
 }
 
-size_t Message::GetUseSize()
+size_t Message::GetUseSize() const
 {
     if (mFrontPtr <= mRearPtr)
     {

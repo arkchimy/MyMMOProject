@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <cstdint>
 #include <queue>
 #include <mutex>
 
@@ -10,7 +11,7 @@
 namespace network
 {
 using ull = unsigned long long;
-using seqAddrType = __int64;
+using seqAddrType = int64_t;
 
 struct SeqAndIdx
 {
@@ -18,10 +19,10 @@ struct SeqAndIdx
     {
         struct
         {
-            __int64 Idx : 17; // sessions 의 idx
-            __int64 Seq : 47; // session의 고유성을 보장하기위한 seqNumber
+            int64_t Idx : 17; // sessions 의 idx
+            int64_t Seq : 47; // session의 고유성을 보장하기위한 seqNumber
         };
-        __int64 Value;
+        int64_t Value;
     };
     bool operator==(const SeqAndIdx &other) const
     {
@@ -33,21 +34,27 @@ struct SeqAndIdx
     }
 };
 
-class Session
+class Session final
 {
     friend class NetworkLib;
 
   public:
     Session();
     ~Session();
+
+    Session(const Session &) = delete;
+    Session &operator=(const Session &) = delete;
+    Session(Session &&) = delete;
+    Session &operator=(Session &&) = delete;
+
     void EnQueueMsg(utility::Message &msg);
 
     utility::Message *DeQueueMsgOrNull();
 
     void ReleaseSession();
 
-    inline void SetmPtr(void* ptr) { mPtr = ptr; }
-    inline void* GetmPtr() { return mPtr; }
+    inline void SetPtr(void* ptr) { mPtr = ptr; }
+    inline void* GetPtr() const { return mPtr; }
 
   private:
     SOCKET mSock;

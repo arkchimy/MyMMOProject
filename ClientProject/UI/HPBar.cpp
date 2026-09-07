@@ -24,7 +24,7 @@ namespace ui
 		: mTarget(nullptr)
 		, mCurrentHp(100.f)
 		, mMaxHp(100.f)
-		, rate(1.f)
+		, mRate(1.f)
 		, mUIManager(nullptr)
 	{
 		mUIManager = render::ImageManager::GetInstance();
@@ -77,7 +77,7 @@ namespace ui
 			mSprite->Run();
 			return;
 		}
-		rate = mCurrentHp / mMaxHp;
+		mRate = mCurrentHp / mMaxHp;
 
 		mSprite->Run();
 		mHpBar->Run();
@@ -109,13 +109,13 @@ namespace ui
 		mHpBar->GetCurrentUVOffset(cbData.uvOffset[0], cbData.uvOffset[1]);
 		mHpBar->GetCurrentUVScale(cbData.uvScale[0], cbData.uvScale[1]);
 
-		int width = mHpBar->GetSpriteWidth();
-		int height = mHpBar->GetSpriteHeight();
+		int32_t width = mHpBar->GetSpriteWidth();
+		int32_t height = mHpBar->GetSpriteHeight();
 
-		float scaleX = rate * mScale * width / 640.0f;   // 1280/2
+		float scaleX = mRate * mScale * width / 640.0f;   // 1280/2
 		float scaleY = mScale * height / 360.0f;  // 720/2
 
-		float transX = (mX - (1 - rate) * width * 0.5f) / 640.0f;
+		float transX = (mX - (1 - mRate) * width * 0.5f) / 640.0f;
 		float transY = (-mY) / 360.0f;
 
 		XMMATRIX world = XMMatrixScaling(scaleX, scaleY, 1.0f)

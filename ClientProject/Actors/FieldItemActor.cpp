@@ -1,18 +1,19 @@
 ﻿#include "FieldItemActor.h"
 #include "Render/Animation.h"
 #include <cmath>
+#include <cstdint>
 
 namespace
 {
 	struct ItemSpriteInfo
 	{
 		const char* filename;
-		int width;
-		int height;
+		int32_t width;
+		int32_t height;
 	};
 
 	// eItemId 순서(Gold, Potion)와 동일하게 맞춤
-	const ItemSpriteInfo kItemSpriteTable[] =
+	constexpr ItemSpriteInfo kItemSpriteTable[] =
 	{
 		{ "Asset/DropItem/Gold.png",     24, 20 },
 		{ "Asset/DropItem/Potion_1.png", 24, 31 },

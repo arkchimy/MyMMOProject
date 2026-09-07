@@ -22,9 +22,6 @@ namespace ui
 	}
 	void UIBase::Render()
 	{
-		//?곸닔踰꾪띁 ?ｊ린
-		// Samapler ?명똿
-		// SRV ?명똿
 		// DRAW
 		auto& deviceContext = Game::GetInstance().GetDeviceContext();
 		RT_ASSERT(mSprite->GetCurrentSRV() != nullptr);
@@ -100,8 +97,8 @@ namespace ui
 		mSprite->GetCurrentUVOffset(cbData.uvOffset[0], cbData.uvOffset[1]);
 		mSprite->GetCurrentUVScale(cbData.uvScale[0], cbData.uvScale[1]);
 
-		int width = mSprite->GetSpriteWidth();
-		int height = mSprite->GetSpriteHeight();
+		int32_t width = mSprite->GetSpriteWidth();
+		int32_t height = mSprite->GetSpriteHeight();
 
 		float scaleX = mScale * width / 640.0f;   // 1280/2
 		float scaleY = mScale * height / 360.0f;  // 720/2

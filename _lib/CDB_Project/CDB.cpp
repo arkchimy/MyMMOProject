@@ -20,7 +20,7 @@ void CDB::myAssert(const bool x, const char* str) const
 }
 void CDB::throwIfFailed()
 {
-	if (bFailed)
+	if (mBFailed)
 	{
 		writeLog("unhandleError.txt");
 		throw CDBException(mLastErrNo, mLastError);
@@ -42,7 +42,7 @@ void CDB::writeLog(const char* fileName) const
 
 void CDB::fail(const char* context)
 {
-	bFailed = true;
+	mBFailed = true;
 	mLastErrNo = mysql_errno(mConn);
 	snprintf(mLastError, CONFIG_MAX_ERROR_LEN, "context : %s  \t errMsg : %s ", context, mysql_error(mConn));
 	writeLog();
@@ -50,7 +50,7 @@ void CDB::fail(const char* context)
 
 CDB::CDB()
 {
-	SYSTEMTIME stNowTime;
+	SYSTEMTIME stNowTime{};
 	GetLocalTime(&stNowTime);
 
 	wchar_t* threadDescription = nullptr;
@@ -75,7 +75,7 @@ CDB::CDB()
 	mFilename += ".txt";
 }
 
-bool CDB::Connect(const char* host, const char* user, const char* pass, const char* dbName, int port)
+bool CDB::Connect(const char* host, const char* user, const char* pass, const char* dbName, int32_t port)
 {
 	constexpr const char* Format = "Connect(host=%s, port=%d, db=%s)";
 	throwIfFailed();

@@ -42,7 +42,6 @@
         └────────────────────────────────────────┘
 ```
 
-- 스케일아웃 전까지는 별도 LoginServer가 불필요하다고 판단했습니다 (판단 근거는 포트폴리오 참고).
 - MySQL 블로킹 호출이 게임 로직의 20ms 틱을 막지 않도록 인증 / 게임 로직 / DB를 각각 별도 스레드로 분리했습니다.
 - 이동 · 전투는 섹터 기반 AOI로 주변 플레이어에게만 브로드캐스트하고, 랭킹은 Redis로 조회합니다.
 
@@ -85,34 +84,10 @@ C++ · Windows IOCP · MySQL · Redis (cpp_redis) · DirectX11 (클라이언트)
 
 **사전 준비**: Visual Studio 2022, MySQL 8.x, Redis
 
-1. MySQL에 DB를 생성하고 `Accounts` 테이블을 만듭니다 (코드에서 쓰는 컬럼 기준):
-
-   | 컬럼 | 타입 | 용도 |
-   |---|---|---|
-   | accountNo | BIGINT, PK, AUTO_INCREMENT | 계정 식별자 |
-   | id | VARCHAR(19), UNIQUE | 로그인 ID (닉네임으로 재사용) |
-   | pw | VARCHAR(64) | 비밀번호 (평문 저장) |
-   | x, y | FLOAT | 마지막 저장 위치 |
-   | killCount | BIGINT, DEFAULT 0 | 몬스터 처치 수 (Redis 이중 갱신) |
-   | lastKillTime | DATETIME | 킬카운트 동률 시 보조 정렬용 |
-
-   ```sql
-   CREATE TABLE Accounts (
-       accountNo    BIGINT AUTO_INCREMENT PRIMARY KEY,
-       id           VARCHAR(19) NOT NULL UNIQUE,
-       pw           VARCHAR(64) NOT NULL,
-       x            FLOAT NOT NULL DEFAULT 0,
-       y            FLOAT NOT NULL DEFAULT 0,
-       killCount    BIGINT NOT NULL DEFAULT 0,
-       lastKillTime DATETIME NULL
-   );
-   ```
-
-2. Redis를 로컬에서 실행합니다 (기본 `127.0.0.1:6379`).
-3. `FieldServer/FieldServer.slnx`를 빌드 후 실행합니다 — DB 접속 정보는 `FieldServer.cpp` 상단에서 직접 수정합니다.
-4. `ClientProject/ClientProject.slnx`를 빌드 후 실행합니다 — 서버 주소/포트는 `ClientProject/Network/NetConfig.h`에서 설정합니다 (기본 포트 32000).
-       └─────  에셋을 등록하지 않았으므로 실행되지 않음.
-5. 'ClientBotProject'를 빌드 후 실행합니다.
+1. Redis를 로컬에서 실행합니다 (기본 `127.0.0.1:6379`).
+2. `FieldServer/FieldServer.slnx`를 빌드 후 실행합니다 — DB 접속 정보는 `FieldServer.cpp` 상단에서 직접 수정합니다.
+3. `ClientProject/ClientProject.slnx`를 빌드 후 실행합니다 — 서버 주소/포트는 `ClientProject/Network/NetConfig.h`에서 설정.
+4. 'ClientBotProject'를 빌드 후 실행합니다.
 ---
   ## 설계 버전과 다음 단계
 
@@ -122,16 +97,9 @@ C++ · Windows IOCP · MySQL · Redis (cpp_redis) · DirectX11 (클라이언트)
   |---|---|---|
   | 인증 | FieldServer 내 authThread에서 처리 | 별도 LoginServer 프로세스로 분리 |
   | 랭킹 | Redis ZSET 단일 인스턴스, FieldServer가 직접 갱신 | 랭킹 집계 서버 분리, FieldServer는 이벤트만 발행 |
-  | 분리 트리거 | 동시접속자 [ ]명, 필드 서버 [ ]대 초과 시 | - |
-
-  **왜 v1에서 안 분리했는가**
-  단일 필드 서버가 처리 가능한 동시접속 규모([ ]명 기준)에서는 인증/랭킹을 분리해도 얻는 이득보다 프로세스 간 통신
-  오버헤드가 더 크다고 판단했습니다. 분리는 필드 서버가 여러 대로 늘어나 인증을 공유해야 하는 시점, 혹은 랭킹 갱신
-  트래픽이 게임 로직 틱을 압박하는 시점에 의미가 생깁니다.
 
   **v2로 갈 때 바뀌는 것**
   - LoginServer가 세션 토큰을 발급하고 FieldServer는 토큰만 검증 (인증 로직 중복 제거)
-  - 랭킹 갱신은 FieldServer → 메시지 큐 → 랭킹 집계 서버로 비동기화 (dual-write 실패 시 FieldServer가 블로킹되는 문제
-  제거)
+  - 랭킹 갱신은 FieldServer → 메시지 큐 → 랭킹 집계 서버로 분리
 
   설계 판단의 세부 근거(병목 지점 추정, 장애 격리 시나리오)는 포트폴리오에 정리했습니다.

@@ -189,7 +189,7 @@ namespace utility
     void RingBuffer::MoveRear(ringBufferSize iSize)
     {
         char *pChk;
-        long long distance;
+        int64_t distance;
         char *oldRear;
 
         oldRear = mRearPtr;
@@ -205,7 +205,7 @@ namespace utility
     void RingBuffer::MoveFront(ringBufferSize iSize)
     {
         char *pChk;
-        long long distance;
+        int64_t distance;
         char *oldFront;
 
         oldFront = mFrontPtr;

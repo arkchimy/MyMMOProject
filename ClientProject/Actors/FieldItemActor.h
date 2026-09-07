@@ -3,13 +3,12 @@
 
 namespace actors
 {
-	class FieldItemActor : public Actor
+	class FieldItemActor final : public Actor
 	{
 	public:
 		FieldItemActor(int64_t itemUniqueId, float x, float y, eItemId itemId);
-	protected:
-		virtual void actorUpdate() override;
 	private:
+		virtual void actorUpdate() override;
 		void loadItemSprite(eItemId itemId);
 	private:
 		float mBaseY;    // bobbing 기준점 (서버 좌표, 흔들림에 영향 안 받음)

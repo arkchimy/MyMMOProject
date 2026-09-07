@@ -28,7 +28,7 @@ namespace scene
 	{
 		while (utility::Message* msg = g_Network.PopPacket())
 		{
-			bool bSuccess = mCurrentScene->PacketProc(*msg);
+			bool bSuccess = mCurrentScene->packetProc(*msg);
 			delete msg;
 			if (!bSuccess)
 			{

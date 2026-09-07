@@ -51,22 +51,22 @@ namespace scene
 	{
 		FIELD_CONFIG_UI_LEN = 1
 	};
-	class FieldScene :public ISceneBase
+	class FieldScene final :public ISceneBase
 	{
 	public:
 		FieldScene(actors::Actor* player);
 		~FieldScene();
 
 		FieldScene(const FieldScene& other) = delete;
-		FieldScene(const FieldScene&& rvalue) = delete;
+		FieldScene(FieldScene&& rvalue) = delete;
 		const FieldScene& operator = (const FieldScene& rhs) = delete;
-		const FieldScene& operator = (const FieldScene&& rhs) = delete;
+		FieldScene& operator=(FieldScene&& rhs) = delete;
 
 	private:
-		virtual void update();
-		virtual void render();
-		virtual ISceneBase* getNextSceneOrNull();
-		bool PacketProc(utility::Message& msg);
+		virtual void update() override;
+		virtual void render() override;
+		virtual ISceneBase* getNextSceneOrNull() override;
+		virtual bool packetProc(utility::Message& msg) override;
 
 		void onOtherCharacterSpawn(utility::Message& msg);
 		void onOtherCharacterSpawnBatch(utility::Message& msg);
@@ -95,15 +95,15 @@ namespace scene
 	private:
 		ISceneBase* mNextScene;
 		map::TileMap* mTileMap;
-		std::unordered_map<__int64, actors::Actor*> mActors;
-		std::unordered_map<__int64, actors::Actor*> mMonsterActors;
-		std::unordered_map<__int64, actors::Actor*> mItemActors;
+		std::unordered_map<int64_t, actors::Actor*> mActors;
+		std::unordered_map<int64_t, actors::Actor*> mMonsterActors;
+		std::unordered_map<int64_t, actors::Actor*> mItemActors;
 		actors::Actor* mLocalPlayer;
 		render::Camera* mCamera;
 
-		ui::UIBase* UIArr[FIELD_CONFIG_UI_LEN];
-		bool mbAttackKeyDown = false;
-		bool mbLootKeyDown = false;
-		bool mbRankingKeyDown = false;
+		ui::UIBase* mUIArr[FIELD_CONFIG_UI_LEN];
+		bool mBAttackKeyDown = false;
+		bool mBLootKeyDown = false;
+		bool mBRankingKeyDown = false;
 	};
 }

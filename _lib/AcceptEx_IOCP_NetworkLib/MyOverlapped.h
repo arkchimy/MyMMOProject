@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include "Common.h"
 #include "NetConfig.h"
 namespace network
@@ -16,12 +17,18 @@ class MyOverlapped : public OVERLAPPED
 {
   public:
     MyOverlapped(const eComplete mode) : mMode(mode) {}
+
+    MyOverlapped(const MyOverlapped &) = delete;
+    MyOverlapped &operator=(const MyOverlapped &) = delete;
+    MyOverlapped(MyOverlapped &&) = delete;
+    MyOverlapped &operator=(MyOverlapped &&) = delete;
+
     const eComplete GetMode() const { return mMode; }
 
   private:
     const eComplete mMode;
 };
-class AcceptOv : public MyOverlapped
+class AcceptOv final : public MyOverlapped
 {
     friend class NetworkLib;
   public:
@@ -29,16 +36,26 @@ class AcceptOv : public MyOverlapped
         : MyOverlapped(eComplete::COMPLETE_ACCEPT),
           mSession(session) {}
 
+    AcceptOv(const AcceptOv &) = delete;
+    AcceptOv &operator=(const AcceptOv &) = delete;
+    AcceptOv(AcceptOv &&) = delete;
+    AcceptOv &operator=(AcceptOv &&) = delete;
+
   private:
     void *mSession;
 };
-class RecvOv : public MyOverlapped
+class RecvOv final : public MyOverlapped
 {
   public:
     RecvOv()
         : MyOverlapped(eComplete::COMPLETE_RECV) {}
+
+    RecvOv(const RecvOv &) = delete;
+    RecvOv &operator=(const RecvOv &) = delete;
+    RecvOv(RecvOv &&) = delete;
+    RecvOv &operator=(RecvOv &&) = delete;
 };
-class SendOv : public MyOverlapped
+class SendOv final : public MyOverlapped
 {
     friend class NetworkLib;
     friend class Session;
@@ -50,14 +67,24 @@ class SendOv : public MyOverlapped
           mMsgCnt(0)
     {}
 
+    SendOv(const SendOv &) = delete;
+    SendOv &operator=(const SendOv &) = delete;
+    SendOv(SendOv &&) = delete;
+    SendOv &operator=(SendOv &&) = delete;
+
   private:
     void *mSendMsgs[CONFIG_SEND_MESSAGE_MAXCOUNT];
-    __int16 mMsgCnt;
+    int16_t mMsgCnt;
 };
-class ReleaseOv : public MyOverlapped
+class ReleaseOv final : public MyOverlapped
 {
   public:
     ReleaseOv()
         : MyOverlapped(eComplete::COMPLETE_RELEASE) {}
+
+    ReleaseOv(const ReleaseOv &) = delete;
+    ReleaseOv &operator=(const ReleaseOv &) = delete;
+    ReleaseOv(ReleaseOv &&) = delete;
+    ReleaseOv &operator=(ReleaseOv &&) = delete;
 };
 } // namespace network

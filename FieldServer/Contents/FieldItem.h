@@ -5,11 +5,17 @@
 
 namespace contents
 {
-	class FieldItem
+	class FieldItem final
 	{
 		friend class FieldServer;
 	public:
 		FieldItem(int64_t itemUniqueId, eItemId itemId, int32_t count, const map::Position& pos);
+
+		FieldItem(const FieldItem&) = delete;
+		FieldItem& operator=(const FieldItem&) = delete;
+		FieldItem(FieldItem&&) = delete;
+		FieldItem& operator=(FieldItem&&) = delete;
+
 		void Update();               // 생존 프레임 카운트
 		bool IsExpired() const;      // 30초 경과 여부
 	private:

@@ -37,7 +37,7 @@ struct WsadataRAII
     WsadataRAII()
     {
         // WSAStartup 함수는 성공하면 0을 반환합니다.
-        if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0)
+        if (WSAStartup(MAKEWORD(2, 2), &mWsadata) != 0)
         {
             RT_ASSERT(false);
         }
@@ -46,7 +46,14 @@ struct WsadataRAII
     {
         WSACleanup();
     }
-    WSADATA wsadata;
+
+    WsadataRAII(const WsadataRAII &) = delete;
+    WsadataRAII &operator=(const WsadataRAII &) = delete;
+    WsadataRAII(WsadataRAII &&) = delete;
+    WsadataRAII &operator=(WsadataRAII &&) = delete;
+
+  private:
+    WSADATA mWsadata;
 };
 
 }

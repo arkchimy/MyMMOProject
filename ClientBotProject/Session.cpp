@@ -17,7 +17,7 @@ static constexpr float kBotSpeed = 4.5f;	//서버 Player::mSpeed 기본값과 �
 Session::Session()
 	:mSock(INVALID_SOCKET)
 	, mSessionState(eSessionState::DISCONNECTED)
-	, mAccountNo(InterlockedIncrement64(&g_accountNo))
+	, mAccountNo(InterlockedIncrement64(&mG_accountNo))
 	, mCharacterId(0)
 	, mLastTime(0)
 	, mPos(0.f, 0.f)
@@ -50,8 +50,8 @@ void Session::Init()
 	RT_ASSERT(mSock == INVALID_SOCKET, "Init 중복 호출 : mSock이 이미 존재");
 
 	mSock = socket(AF_INET, SOCK_STREAM, 0);
-	int flag = 1;
-	int result = setsockopt(mSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&flag, sizeof(flag));
+	int32_t flag = 1;
+	int32_t result = setsockopt(mSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&flag, sizeof(flag));
 	mSendSize = 0;
 	mRecvSize = 0;
 	mDeadFrame = 0;
@@ -59,7 +59,7 @@ void Session::Init()
 
 void Session::PostSend()
 {
-	int ret = send(mSock, mSendBuffer, mSendSize, 0);
+	int32_t ret = send(mSock, mSendBuffer, mSendSize, 0);
 	if (ret <= 0)
 	{
 		if (WSAGetLastError() == WSAEWOULDBLOCK)
@@ -84,7 +84,7 @@ bool Session::Recv()
 	//가득 찬 채 recv(len=0)를 부르면 리턴 0이라 끊김으로 오판하게 됨
 	RT_ASSERT(0 < SESSION_RECV_BUFFER_SIZE - mRecvSize, "recvBuffer 가득 참");
 
-	int ret = recv(mSock, mRecvBuffer + mRecvSize, SESSION_RECV_BUFFER_SIZE - mRecvSize, 0);
+	int32_t ret = recv(mSock, mRecvBuffer + mRecvSize, SESSION_RECV_BUFFER_SIZE - mRecvSize, 0);
 	if (ret == 0)
 	{
 		//RT_ASSERT(WSAGetLastError() == WSAEWOULDBLOCK, "서버가 끊음");
@@ -104,7 +104,7 @@ bool Session::Recv()
 	return true;
 }
 
-void Session::EnqueueSend(const void* data, int size)
+void Session::EnqueueSend(const void* data, int32_t size)
 {
 	mLastTime = timeGetTime();
 	//안 들어가면 봇 설계 오류 : 송신량이 소켓 처리량을 초과했다는 뜻
@@ -123,7 +123,7 @@ void Session::PostFieldAuthReq()
 
 	// mAccountNo에서 id 파생 — 재접속해도 mAccountNo가 그대로라 같은 id로 같은 계정에 로그인됨
 	char idStr[20];	// pkt.id와 크기 일치 — mAccountNo 자릿수가 커져도 snprintf가 여기서 안전하게 truncate
-	snprintf(idStr, sizeof(idStr), "bot%lld", static_cast<long long>(mAccountNo));
+	snprintf(idStr, sizeof(idStr), "bot%lld", static_cast<int64_t>(mAccountNo));
 	memcpy(pkt.id, idStr, strlen(idStr));	// 나머지는 pkt{} 초기화로 이미 0
 
 	static constexpr char kBotPw[] = "botpass123";
@@ -160,13 +160,13 @@ void Session::idleUpdate()
 		return;
 	}
 
-	int randNum = rand() % 100;
+	int32_t randNum = rand() % 100;
 	//Idle : 5% 이동 시작, 95% 유지
 	if (randNum <= 5)
 	{
 
-		eDirection dir = static_cast<eDirection>(rand() % static_cast<int>(eDirection::Max));
-		PostMoveStart(dir);
+		eDirection dir = static_cast<eDirection>(rand() % static_cast<int32_t>(eDirection::Max));
+		postMoveStart(dir);
 		changeState(ePlayerState::Move);
 		traceMove("idleUpdate1", true);
 		return;
@@ -177,19 +177,19 @@ void Session::idleUpdate()
 
 void Session::moveUpdate()
 {
-	int randNum = rand() % 100;
+	int32_t randNum = rand() % 100;
 	if (randNum == 0)
 	{
-		PostMoveStop();
+		postMoveStop();
 		changeState(ePlayerState::Idle);
 		traceMove("moveUpdate1", false);
 	}
 	else if (randNum == 1 && changeDirFrame <= mAnimFrame)
 	{
-		eDirection dir = static_cast<eDirection>(rand() % static_cast<int>(eDirection::Max));
-		PostMoveStop();
+		eDirection dir = static_cast<eDirection>(rand() % static_cast<int32_t>(eDirection::Max));
+		postMoveStop();
 		traceMove("moveUpdate2", false);
-		PostMoveStart(dir);
+		postMoveStart(dir);
 		traceMove("moveUpdate3", true);
 	}
 }
@@ -205,9 +205,9 @@ void Session::chaseUpdate()
 
 	if (isInAttackRange(mPos.x, mPos.y, mTargetPos.x, mTargetPos.y, rangeLen))
 	{
-		if (bMove)
+		if (mBMove)
 		{
-			PostMoveStop();
+			postMoveStop();
 			traceMove("chaseUpdate1", false);
 
 		}
@@ -216,19 +216,19 @@ void Session::chaseUpdate()
 			mMonsterKillTime = timeGetTime();
 		}
 		mDirection = dirToTarget;
-		PostAttackReq();
+		postAttackReq();
 		changeState(ePlayerState::Attack);
 		return;
 	}
 	if (changeDirFrame <= mAnimFrame)
 	{
 		mAnimFrame = 0;
-		if (bMove)
+		if (mBMove)
 		{
-			PostMoveStop();
+			postMoveStop();
 			traceMove("chaseUpdate2", false);
 		}
-		PostMoveStart(dirToTarget);
+		postMoveStart(dirToTarget);
 		traceMove("chaseUpdate3", true);
 	}
 }
@@ -245,9 +245,9 @@ void Session::rootUpdate()
 {
 	if (mTargetItemID == -1)
 	{
-		if (bMove)
+		if (mBMove)
 		{
-			PostMoveStop();
+			postMoveStop();
 			traceMove("rootUpdate3", false);
 		}
 		changeState(ePlayerState::Idle);
@@ -263,23 +263,23 @@ void Session::rootUpdate()
 		dirToTarget = getDirectionTo(mPos.x, mPos.y, mTargetItemPos.x, mTargetItemPos.y);
 		if (changeDirFrame <= mAnimFrame)
 		{
-			if (bMove)
+			if (mBMove)
 			{
-				PostMoveStop();
+				postMoveStop();
 				traceMove("rootUpdate1", false);
 			}
 
-			PostMoveStart(dirToTarget);
+			postMoveStart(dirToTarget);
 			traceMove("rootUpdate2", true);
 		}
 		return;
 	}
-	if (bMove)
+	if (mBMove)
 	{
-		PostMoveStop();   // 요청 대기 중 서버와 위치 어긋나지 않도록 정지 통보
+		postMoveStop();   // 요청 대기 중 서버와 위치 어긋나지 않도록 정지 통보
 		traceMove("rootUpdate3", false);
 	}
-	PostLootReq();
+	postLootReq();
 
 	mLootRequested = true;
 }
@@ -320,7 +320,7 @@ void Session::selectAction()
 	// 마지막 송신이 20초 넘게 경과되었다면.
 	if (mLastTime + 20000 <= currentTime)
 	{
-		PostHeartBeat();
+		postHeartBeat();
 	}
 
 }
@@ -328,7 +328,7 @@ void Session::selectAction()
 void Session::Update()
 {
 
-	if (bMove)
+	if (mBMove)
 	{
 		float dx = kDirectionVectorTable[static_cast<int8_t>(mDirection)].mX;
 		float dy = kDirectionVectorTable[static_cast<int8_t>(mDirection)].mY;
@@ -401,7 +401,7 @@ void Session::TakeDamage(const int32_t hp, const float x, const float y)
 	mTargetPos.x = x;
 	mTargetPos.y = y;
 
-	if (bMove)
+	if (mBMove)
 	{
 		traceMove("TakeDamage", false);
 	}
@@ -449,7 +449,7 @@ void Session::Disconnect(int32_t currentTime)
 
 
 
-void Session::PostMoveStart(eDirection dir)
+void Session::postMoveStart(eDirection dir)
 {
 	MoveStartPacket pkt{};
 	pkt.header.Len = sizeof(pkt.type) + sizeof(pkt.characterId) + sizeof(pkt.x) + sizeof(pkt.y) + sizeof(pkt.direction) + sizeof(pkt.speed);
@@ -469,7 +469,7 @@ void Session::PostMoveStart(eDirection dir)
 	mAnimFrame = 0;
 }
 
-void Session::PostMoveStop()
+void Session::postMoveStop()
 {
 	MoveStopPacket pkt{};
 	pkt.header.Len = sizeof(pkt.type) + sizeof(pkt.characterId) + sizeof(pkt.x) + sizeof(pkt.y) + sizeof(pkt.direction);
@@ -487,7 +487,7 @@ void Session::PostMoveStop()
 	mAnimFrame = 0;
 }
 
-void Session::PostAttackReq()
+void Session::postAttackReq()
 {
 	PlayerAttackReq pkt{};
 	pkt.header.Len = sizeof(pkt.type) + sizeof(pkt.skillId) + sizeof(pkt.targetCnt) + sizeof(pkt.monsterId);
@@ -501,7 +501,7 @@ void Session::PostAttackReq()
 	stats::RecordSend(PacketType::PLAYER_ATTACK_REQ);
 }
 
-void Session::PostLootReq()
+void Session::postLootReq()
 {
 	LootReq pkt{};
 	pkt.header.Len = sizeof(pkt.type) + sizeof(pkt.itemUniqueId);
@@ -513,7 +513,7 @@ void Session::PostLootReq()
 	stats::RecordSend(PacketType::LOOT_REQ);
 }
 
-void Session::PostHeartBeat()
+void Session::postHeartBeat()
 {
 	//TODO : 하트비트 프로토콜 구현하기.
 
@@ -530,7 +530,7 @@ void Session::traceMove(const char* str, int8_t on)
 		std::cout << "AccountNo : " << mAccountNo << "\t" << str << "\t : On" << "\n";
 	}*/
 
-	bMove = on;
+	mBMove = on;
 }
 
 

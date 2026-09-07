@@ -20,7 +20,7 @@ namespace contents
 		, mPos(0.f, 0.f)
 		, mStartMovePos(0.f, 0.f)
 		, mCharacterType(0)
-		, bConnect(true)
+		, mBConnect(true)
 		, mSpeed(4.5f)
 		, mState(ePlayerState::Idle)
 		, mAnimFrame(0)
@@ -69,7 +69,7 @@ namespace contents
 	}
 	utility::Message* Player::DeQueueMsgOrNull()
 	{
-		if (!bConnect)
+		if (!mBConnect)
 		{
 			return nullptr;
 		}
@@ -113,7 +113,7 @@ namespace contents
 
 	void Player::update()
 	{
-		if (!bConnect)
+		if (!mBConnect)
 		{
 			// 확인했음.
 			//RT_ASSERT(false, "연결이 끊겼는데 update를 도는 경우가 있음. DB의 지연처리때문으로 예상");

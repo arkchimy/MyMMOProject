@@ -5,21 +5,21 @@
 
 #define RINGBUFFER_ASSERT() \
 do{\
-	if (bFail)\
+	if (mBFail)\
 	{\
-		if(bFail & (1 << static_cast<uint8_t>(eRingBufferFailBit::BufferFull)))\
+		if(mBFail & (1 << static_cast<uint8_t>(eRingBufferFailBit::BufferFull)))\
 		{\
 			std::cout << std::setw(10) << "BufferFull\n";\
 		}\
-		if(bFail & (1 << static_cast<uint8_t>(eRingBufferFailBit::BufferEmpty)))\
+		if(mBFail & (1 << static_cast<uint8_t>(eRingBufferFailBit::BufferEmpty)))\
 		{\
 			std::cout << std::setw(10) << "BufferEmpty\n";\
 		}\
-		if(bFail & (1 << static_cast<uint8_t>(eRingBufferFailBit::BufferPeekEmpty)))\
+		if(mBFail & (1 << static_cast<uint8_t>(eRingBufferFailBit::BufferPeekEmpty)))\
 		{\
 			std::cout << std::setw(10) << "BufferPeekEmpty\n";\
 		}\
-		if(bFail & (1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid)))\
+		if(mBFail & (1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid)))\
 		{\
 			std::cout << std::setw(10) << "ArgmentSizeInvalid\n";\
 		}\
@@ -34,7 +34,7 @@ namespace utility
 		, mEnd(mBuffer + eConfig::RINGBUFFER_SIZE)
 		, mFront(mBuffer)
 		, mRear(mBuffer)
-		, bFail(false)
+		, mBFail(false)
 	{
 	}
 	void MyRingBuffer::Peek(void* Dest, const int32_t size)
@@ -42,7 +42,7 @@ namespace utility
 
 		if (size < 0)
 		{
-			bFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
+			mBFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
 			RINGBUFFER_ASSERT();
 			return;
 		}
@@ -56,7 +56,7 @@ namespace utility
 
 		if (useSize < size)
 		{
-			bFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::BufferEmpty);
+			mBFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::BufferEmpty);
 			return;
 		}
 
@@ -86,7 +86,7 @@ namespace utility
 	{
 		if (size < 0)
 		{
-			bFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
+			mBFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
 			return;
 		}
 
@@ -97,7 +97,7 @@ namespace utility
 		int32_t freeSize = GetFreeSize(f, r);
 		if (freeSize < size)
 		{
-			bFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::BufferFull);
+			mBFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::BufferFull);
 			RINGBUFFER_ASSERT();
 			return;
 		}
@@ -130,7 +130,7 @@ namespace utility
 	{
 		if (size < 0)
 		{
-			bFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
+			mBFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
 			RINGBUFFER_ASSERT();
 			return;
 		}
@@ -141,7 +141,7 @@ namespace utility
 		int32_t useSize = GetUseSize(f, r);
 		if (useSize < size)
 		{
-			bFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::BufferEmpty);
+			mBFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::BufferEmpty);
 			RINGBUFFER_ASSERT();
 			return;
 		}
@@ -174,7 +174,7 @@ namespace utility
 	{
 		mFront = mBegin;
 		mRear = mBegin;
-		bFail = 0;
+		mBFail = 0;
 	}
 
 	void MyRingBuffer::MoveFront(int32_t move)
@@ -185,7 +185,7 @@ namespace utility
 		}
 		if (move < 0)
 		{
-			bFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
+			mBFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
 			return;
 		}
 		char* f = mFront;
@@ -203,7 +203,7 @@ namespace utility
 		RINGBUFFER_ASSERT();
 		if (move < 0)
 		{
-			bFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
+			mBFail |= 1 << static_cast<uint8_t>(eRingBufferFailBit::ArgmentSizeInvalid);
 			return;
 		}
 		char* r = mRear;

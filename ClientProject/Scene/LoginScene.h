@@ -15,17 +15,23 @@ namespace scene
 	{
 		LOGIN_CONFIG_UI_LEN = 1
 	};
-	class LoginScene :public ISceneBase
+	class LoginScene final :public ISceneBase
 	{
 	public:
 		LoginScene();
 		~LoginScene();
+
+		LoginScene(const LoginScene&) = delete;
+		LoginScene& operator=(const LoginScene&) = delete;
+		LoginScene(LoginScene&&) = delete;
+		LoginScene& operator=(LoginScene&&) = delete;
+
 	private:
 		void startInit();
-		virtual void update();
-		virtual void render();
-		virtual ISceneBase* getNextSceneOrNull();
-		bool PacketProc(utility::Message& msg);
+		virtual void update() override;
+		virtual void render() override;
+		virtual ISceneBase* getNextSceneOrNull() override;
+		virtual bool packetProc(utility::Message& msg) override;
 
 		void sendFieldEnterReq(const char* id, const char* pw);
 		void onAuthFailRes(utility::Message& msg);

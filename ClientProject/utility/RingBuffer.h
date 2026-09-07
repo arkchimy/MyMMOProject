@@ -1,9 +1,10 @@
 ﻿#pragma once
+#include <cstdint>
 namespace utility
 {
-using ringBufferSize = __int32;
+using ringBufferSize = int32_t;
 
-class RingBuffer
+class RingBuffer final
 {
 
   public:
@@ -11,6 +12,11 @@ class RingBuffer
     RingBuffer(ringBufferSize iBufferSize);
 
     ~RingBuffer();
+
+    RingBuffer(const RingBuffer &) = delete;
+    RingBuffer &operator=(const RingBuffer &) = delete;
+    RingBuffer(RingBuffer &&) = delete;
+    RingBuffer &operator=(RingBuffer &&) = delete;
 
     char *GetBeginPtr() const { return mBegin; }
 

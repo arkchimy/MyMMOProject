@@ -18,7 +18,7 @@ namespace actors
 		:Actor(0)
 	{
 	}
-	Actor::Actor(__int64 characterID)
+	Actor::Actor(int64_t characterID)
 		: mVertexBuffer(nullptr)
 		, mConstantBuffer(nullptr)
 		, mIndexCount(0)
@@ -32,7 +32,7 @@ namespace actors
 		, mDirection(eDirection::Down)
 		, mSRV(nullptr)
 		, mCharacterID(characterID)
-		, mbMove(false)
+		, mBMove(false)
 		, mSpeed(2.f)
 		, mMoveFrame(0)
 	{
@@ -51,9 +51,9 @@ namespace actors
 			mConstantBuffer->Release();
 			mConstantBuffer = NULL;
 		}
-		for (int i = 0; i < GAME_CONFIG_STATE_CNT;++i)
+		for (int32_t i = 0; i < GAME_CONFIG_STATE_CNT;++i)
 		{
-			for (int j = 0; j < GAME_CONFIG_DIRECTION_CNT; ++j)
+			for (int32_t j = 0; j < GAME_CONFIG_DIRECTION_CNT; ++j)
 			{
 				{
 					if (mSpriteSet[i][j] != nullptr)
@@ -136,8 +136,8 @@ namespace actors
 		mSprite->GetCurrentUVOffset(cbData.uvOffset[0], cbData.uvOffset[1]);
 		mSprite->GetCurrentUVScale(cbData.uvScale[0], cbData.uvScale[1]);
 
-		int width = mSprite->GetSpriteWidth();
-		int height = mSprite->GetSpriteHeight();
+		int32_t width = mSprite->GetSpriteWidth();
+		int32_t height = mSprite->GetSpriteHeight();
 
 		float scaleX = mScale * width / 640.0f;   // 1280/2
 		float scaleY = mScale * height / 360.0f;  // 720/2
@@ -162,18 +162,18 @@ namespace actors
 	}
 
 	void Actor::appendAnimationSprite(const render::eAnimationType& type, const eDirection& direction, const eActorState state
-		, const char* filename, const int frameCnt, const int colMax, const int frameX, const int frameY, const int startRow, int32_t speed)
+		, const char* filename, const int32_t frameCnt, const int32_t colMax, const int32_t frameX, const int32_t frameY, const int32_t startRow, int32_t speed)
 	{
-		mSpriteSet[static_cast<__int8>(state)][static_cast<__int8>(direction)] = new render::Animation(type, speed);
-		mSpriteSet[static_cast<__int8>(state)][static_cast<__int8>(direction)]->SetAtlas(filename, frameCnt, colMax, frameX, frameY, startRow);
-		auto& sprite = mSpriteSet[static_cast<__int8>(state)][static_cast<__int8>(direction)];
+		mSpriteSet[static_cast<int8_t>(state)][static_cast<int8_t>(direction)] = new render::Animation(type, speed);
+		mSpriteSet[static_cast<int8_t>(state)][static_cast<int8_t>(direction)]->SetAtlas(filename, frameCnt, colMax, frameX, frameY, startRow);
+		auto& sprite = mSpriteSet[static_cast<int8_t>(state)][static_cast<int8_t>(direction)];
 		mSRV = sprite->GetCurrentSRV();
 	}
 
-	void Actor::changeAnimation(const eDirection direction, const eActorState state, const int fastForwardTicks)
+	void Actor::changeAnimation(const eDirection direction, const eActorState state, const int32_t fastForwardTicks)
 	{
 		mSprite->Initialize();
-		mSprite = mSpriteSet[static_cast<__int8>(state)][static_cast<__int8>(direction)];
+		mSprite = mSpriteSet[static_cast<int8_t>(state)][static_cast<int8_t>(direction)];
 		if (fastForwardTicks > 0)
 		{
 			mSprite->FastForward(fastForwardTicks);
@@ -205,20 +205,20 @@ namespace actors
 		deviceContext.DrawIndexed(mIndexCount, 0, 0);
 	}
 
-	void Actor::MoveStart(const __int8 direction, const float x, const float y, const float speed)
+	void Actor::MoveStart(const int8_t direction, const float x, const float y, const float speed)
 	{
-		RT_ASSERT(mbMove == false);
+		RT_ASSERT(mBMove == false);
 		mState = eActorState::Move;
 		mStartX = x;
 		mStartY = y;
 		mDirection = static_cast<eDirection>(direction);
-		mbMove = true;
+		mBMove = true;
 		mSpeed = speed;
 		mMoveFrame = 0;
 		changeAnimation(mDirection, mState);
 	}
 
-	void Actor::MoveStop(const __int8 direction, const float x, const float y)
+	void Actor::MoveStop(const int8_t direction, const float x, const float y)
 	{
 		mState = eActorState::Idle;
 		mStartX = x;
@@ -226,7 +226,7 @@ namespace actors
 		mX = x;
 		mY = y;
 		mDirection = static_cast<eDirection>(direction);
-		mbMove = false;
+		mBMove = false;
 		mMoveFrame = 0;
 		changeAnimation(mDirection, mState);
 	}

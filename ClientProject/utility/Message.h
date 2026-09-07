@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-
+#include <cstdint>
 #include <exception>
 #include <iostream>
 
@@ -34,7 +34,7 @@ enum eTag
     MAX,
 };
 
-class MessageException : public std::exception
+class MessageException final : public std::exception
 {
   public:
     enum class eErrorType
@@ -60,7 +60,7 @@ class MessageException : public std::exception
 
 template <typename T>
 concept Fundamental = std::is_fundamental_v<T>;
-class Message
+class Message final
 {
   public:
     Message();
@@ -73,7 +73,7 @@ class Message
     ~Message();
 
   public:
-    void InitMessage(__int64 sessionID,__int8 randKey);
+    void InitMessage(int64_t sessionID,int8_t randKey);
 
     template <Fundamental T>
     Message &operator<<(const T data)
@@ -152,15 +152,15 @@ class Message
 
     SSIZE_T PutData(PVOID src, SerializeBufferSize size);
     SSIZE_T GetData(PVOID desc, SerializeBufferSize size);
-    __int64 GetOwnerID() { return mOwnerID; }
-    __int8 GetRandomKey() { return mRandKey; }
-    char *GetFrontPtr() { return mFrontPtr; }
+    int64_t GetOwnerID() const { return mOwnerID; }
+    int8_t GetRandomKey() const { return mRandKey; }
+    char *GetFrontPtr() const { return mFrontPtr; }
 
     BOOL Resize();
     void Peek(char *out, SerializeBufferSize size) const;
 
-    void HexLog(eTag tag = eTag::NORMAL, const wchar_t *filename = L"SerializeBuffer_hex.txt");
-    size_t GetUseSize();
+    void HexLog(eTag tag = eTag::NORMAL, const wchar_t *filename = L"SerializeBuffer_hex.txt") const;
+    size_t GetUseSize() const;
   private:
     char mBegin[(DWORD)eBufferSize::MaxSize]{0};
     char *mEnd = nullptr;
@@ -168,13 +168,13 @@ class Message
     char *mFrontPtr = nullptr;
     char *mRearPtr = nullptr;
 
-    __int64 mOwnerID;
-    LONG64 UseCnt = 0;
+    int64_t mOwnerID = 0;
+    LONG64 mUseCnt = 0;
 
-    __int8 mFixedKey = 0x00;
-    __int8 mRandKey = 0x00;
+    int8_t mFixedKey = 0x00;
+    int8_t mRandKey = 0x00;
 
-    bool BLastMessage;
+    bool mBLastMessage = false;
     DWORD mSize = (DWORD)eBufferSize::BufferSize;
 };
 

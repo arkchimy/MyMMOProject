@@ -6,36 +6,36 @@ network::Network g_Network;
 namespace network
 {
 	Network::Network()
-		: m_socket(INVALID_SOCKET)
-		, m_recvBuffer(nullptr)
-		, m_packetQueue(nullptr)
-		, wsadata{ 0 }
+		: mSocket(INVALID_SOCKET)
+		, mRecvBuffer(nullptr)
+		, mPacketQueue(nullptr)
+		, mWsadata{ 0 }
 	{
-		RT_ASSERT(WSAStartup(MAKEWORD(2, 2), &wsadata) == 0);
+		RT_ASSERT(WSAStartup(MAKEWORD(2, 2), &mWsadata) == 0);
 
-		m_recvBuffer = new utility::MyRingBuffer();
-		m_packetQueue = new utility::MyRingBuffer();
+		mRecvBuffer = new utility::MyRingBuffer();
+		mPacketQueue = new utility::MyRingBuffer();
 	}
 
 	Network::~Network()
 	{
 
 		Disconnect();
-		delete m_recvBuffer;
-		delete m_packetQueue;
+		delete mRecvBuffer;
+		delete mPacketQueue;
 		WSACleanup();
 	}
 
-	bool Network::Connect(const char* ip, int port)
+	bool Network::Connect(const char* ip, int32_t port)
 	{
-		if (m_socket != INVALID_SOCKET)
+		if (mSocket != INVALID_SOCKET)
 		{
 			// 이미 연결됨
 			return false;
 		}
 
-		m_socket = socket(AF_INET, SOCK_STREAM, 0);
-		if (m_socket == INVALID_SOCKET)
+		mSocket = socket(AF_INET, SOCK_STREAM, 0);
+		if (mSocket == INVALID_SOCKET)
 		{
 			return false;
 		}
@@ -45,49 +45,49 @@ namespace network
 		addr.sin_port = htons(port);
 		inet_pton(AF_INET, ip, &addr.sin_addr);
 
-		if (connect(m_socket, (SOCKADDR*)&addr, sizeof(addr)) == SOCKET_ERROR)
+		if (connect(mSocket, (SOCKADDR*)&addr, sizeof(addr)) == SOCKET_ERROR)
 		{
-			closesocket(m_socket);
-			m_socket = INVALID_SOCKET;
+			closesocket(mSocket);
+			mSocket = INVALID_SOCKET;
 			return false;
 		}
 
-		m_recvThread = std::thread(&Network::recvThread, this);
-		SetThreadDescription(m_recvThread.native_handle(), L"RecvThread");
+		mRecvThread = std::thread(&Network::recvThread, this);
+		SetThreadDescription(mRecvThread.native_handle(), L"RecvThread");
 		return true;
 	}
 	void Network::Disconnect()
 	{
-		if (m_socket == INVALID_SOCKET)
+		if (mSocket == INVALID_SOCKET)
 		{
 			return;
 		}
 
-		closesocket(m_socket);
-		m_socket = INVALID_SOCKET;
+		closesocket(mSocket);
+		mSocket = INVALID_SOCKET;
 
-		if (m_recvThread.joinable())
+		if (mRecvThread.joinable())
 		{
-			m_recvThread.join();
+			mRecvThread.join();
 		}
-		m_recvBuffer->ClearBuffer();
+		mRecvBuffer->ClearBuffer();
 		utility::Message* msg;
 		while ((msg = PopPacket()) != nullptr)
 		{
 			delete msg;
 		}
-		m_packetQueue->ClearBuffer();
+		mPacketQueue->ClearBuffer();
 
 	}
 	bool Network::Send(utility::Message& msg) 
 	{
-		if (m_socket == INVALID_SOCKET)
+		if (mSocket == INVALID_SOCKET)
 		{
 			return false;
 		}
 
-		int sendSize = static_cast<int>(msg.GetUseSize());
-		int result = send(m_socket, msg.GetFrontPtr(), sendSize, 0);
+		int32_t sendSize = static_cast<int32_t>(msg.GetUseSize());
+		int32_t result = send(mSocket, msg.GetFrontPtr(), sendSize, 0);
 
 		if (result == SOCKET_ERROR)
 		{
@@ -101,23 +101,23 @@ namespace network
 	{
 		while (true)
 		{
-			char* f = m_recvBuffer->GetFrontPtr();
-			char* r = m_recvBuffer->GetRearPtr();
+			char* f = mRecvBuffer->GetFrontPtr();
+			char* r = mRecvBuffer->GetRearPtr();
 			char* writePtr = r;
-			int32_t directFreeSize = m_recvBuffer->GetDirectFreeSize(f,r);
+			int32_t directFreeSize = mRecvBuffer->GetDirectFreeSize(f,r);
 			if (directFreeSize == 0)
 			{
 				// 수신버퍼가 가득찼다.
 				__debugbreak();
 				break;
 			}
-			int result = recv(m_socket, writePtr, directFreeSize, 0);
+			int32_t result = recv(mSocket, writePtr, directFreeSize, 0);
 			if (result <= 0)
 			{
 				break;
 			}
 
-			m_recvBuffer->MoveRear(result);
+			mRecvBuffer->MoveRear(result);
 			Unmarshal();
 		}
 	}
@@ -126,54 +126,54 @@ namespace network
 
 		while (true)
 		{
-			char* f = m_recvBuffer->GetFrontPtr();
-			char* r = m_recvBuffer->GetRearPtr();
+			char* f = mRecvBuffer->GetFrontPtr();
+			char* r = mRecvBuffer->GetRearPtr();
 
-			char* pf = m_packetQueue->GetFrontPtr();
-			char* pr = m_packetQueue->GetRearPtr();
+			char* pf = mPacketQueue->GetFrontPtr();
+			char* pr = mPacketQueue->GetRearPtr();
 
-			int32_t useSize = m_recvBuffer->GetUseSize(f, r);
-			if (useSize < (int)sizeof(Header))
+			int32_t useSize = mRecvBuffer->GetUseSize(f, r);
+			if (useSize < (int32_t)sizeof(Header))
 			{
 				break;
 			}
 
 			Header header;
-			m_recvBuffer->Peek(&header, sizeof(Header));
+			mRecvBuffer->Peek(&header, sizeof(Header));
 
-			int totalSize = sizeof(Header) + header.Len;
+			int32_t totalSize = sizeof(Header) + header.Len;
 			if (useSize < totalSize)
 			{
 				break;
 			}
 
-			if (m_packetQueue->GetFreeSize(pf,pr) < sizeof(size_t))
+			if (mPacketQueue->GetFreeSize(pf,pr) < sizeof(size_t))
 			{
 				break; // 패킷큐 꽉 참 → 다음 recv 때 재시도
 			}
 
-			m_recvBuffer->MoveFront(sizeof(Header));
+			mRecvBuffer->MoveFront(sizeof(Header));
 
 			char tempBuf[utility::eBufferSize::BufferSize];
-			m_recvBuffer->Dequeue(tempBuf, header.Len);
+			mRecvBuffer->Dequeue(tempBuf, header.Len);
 
 			utility::Message* msg = new utility::Message();
 			msg->PutData(tempBuf, header.Len);
 
-			m_packetQueue->Enqueue(&msg, sizeof(utility::Message*));
+			mPacketQueue->Enqueue(&msg, sizeof(utility::Message*));
 		}
 	}
 	utility::Message* network::Network::PopPacket()
 	{
-		char* pf = m_packetQueue->GetFrontPtr();
-		char* pr = m_packetQueue->GetRearPtr();
-		if (m_packetQueue->GetUseSize(pf,pr) < (int)sizeof(utility::Message*))
+		char* pf = mPacketQueue->GetFrontPtr();
+		char* pr = mPacketQueue->GetRearPtr();
+		if (mPacketQueue->GetUseSize(pf,pr) < (int32_t)sizeof(utility::Message*))
 		{
 			return nullptr;
 		}
 
 		utility::Message* msg = nullptr;
-		m_packetQueue->Dequeue(&msg, sizeof(utility::Message*));
+		mPacketQueue->Dequeue(&msg, sizeof(utility::Message*));
 
 		return msg;
 	}

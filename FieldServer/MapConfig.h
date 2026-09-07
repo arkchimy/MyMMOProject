@@ -1,18 +1,19 @@
 ﻿#pragma once
 #include <cmath>
+#include <cstdint>
 // 타일 1개 월드 크기 (mScale=2 적용)
-constexpr int TILE_WORLD_W = 64; // MAP_WIDTH(64) 
-constexpr int TILE_WORLD_H = 47;  // MAP_HEIGHT(47)  
+constexpr int32_t TILE_WORLD_W = 64; // MAP_WIDTH(64)
+constexpr int32_t TILE_WORLD_H = 47;  // MAP_HEIGHT(47)
 
 // 섹터 설정
-constexpr int SECTOR_TILE_CNT = 5;
+constexpr int32_t SECTOR_TILE_CNT = 5;
 // 섹터 하나의 실제 월드 좌표 크기
-constexpr int SECTOR_WORLD_W = SECTOR_TILE_CNT * TILE_WORLD_W; // 320 
+constexpr int32_t SECTOR_WORLD_W = SECTOR_TILE_CNT * TILE_WORLD_W; // 320
 // 섹터 하나의 실제 월드 좌표 크기
-constexpr int SECTOR_WORLD_H = SECTOR_TILE_CNT * TILE_WORLD_H; // 235
+constexpr int32_t SECTOR_WORLD_H = SECTOR_TILE_CNT * TILE_WORLD_H; // 235
 
-constexpr int SECTOR_COL_CNT = 20; // 6400
-constexpr int SECTOR_ROW_CNT = 20; // 4700
+constexpr int32_t SECTOR_COL_CNT = 20; // 6400
+constexpr int32_t SECTOR_ROW_CNT = 20; // 4700
 // 총 400개의 섹터가 존재하고, 400명이 로그인했다면, 1섹터에 1명이 들어감. 이때 9배가 적절.
 namespace map
 {

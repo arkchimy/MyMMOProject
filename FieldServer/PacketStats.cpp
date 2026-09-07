@@ -4,7 +4,7 @@
 
 namespace stats
 {
-	constexpr int kTableSize = 128;
+	constexpr int32_t kTableSize = 128;
 
 	static volatile int64_t g_sendCount[kTableSize] = {};
 	static volatile int64_t g_recvCount[kTableSize] = {};

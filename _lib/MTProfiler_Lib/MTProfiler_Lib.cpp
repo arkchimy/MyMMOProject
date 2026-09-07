@@ -29,13 +29,13 @@ void ExampleMtProfilerLib()
 
 thread_local CProfileManager manager;
 
-const wchar_t* captionFormat[2] =
+constexpr const wchar_t* captionFormat[2] =
 {
 	L"+--------------+--------------+------------+------------------------+\n"
 	L"| %-12ls | %-12ls | %10ls | %20ls   |\n"
 	L"+--------------+--------------+------------+------------------------+\n",
 	L"+--------------+--------------+------------+------------------------+\n" };
-const wchar_t* format[1] = {
+constexpr const wchar_t* format[1] = {
 	L"| %-12d | %-12ls | %10d | %20.5f us|\n",
 };
 
@@ -75,7 +75,7 @@ void CProfileRegistry::CreateProfile(const wchar_t* fileName)
 	_Releases_exclusive_lock_(&mSrwManager);
 }
 
-void CProfileRegistry::ResetEntry()
+void CProfileRegistry::ResetEntry() noexcept
 {
 	_Acquires_exclusive_lock_(&mSrwManager);
 	for (auto& element : mManagerList)
@@ -140,7 +140,7 @@ void CProfileManager::CreateProfile(const wchar_t* fileName)
 	fclose(hFile);
 }
 
-void CProfileManager::ResetEntry()
+void CProfileManager::ResetEntry() noexcept
 {
 	for (int64_t i = 0; i < (int64_t)eConfig::EntryMaxSize; i++)
 	{

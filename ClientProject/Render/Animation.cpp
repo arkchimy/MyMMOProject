@@ -5,7 +5,7 @@
 
 namespace render
 {
-	Animation::Animation(const eAnimationType type, const int& speed)
+	Animation::Animation(const eAnimationType type, const int32_t& speed)
 		: mCurrentFrame(0)
 		, mType(type)
 		, mSpeed(speed)
@@ -34,7 +34,7 @@ namespace render
 		//const Image* img = ImageManager::GetInstance()->Load(filename);
 		//vec.emplace_back(img);
 	}
-	void Animation::SetAtlas(const char* filename, const int frameCount, const int cols, const int frameW, const int frameH, const int startRow)
+	void Animation::SetAtlas(const char* filename, const int32_t frameCount, const int32_t cols, const int32_t frameW, const int32_t frameH, const int32_t startRow)
 	{
 		mFilename = filename;
 		mAtlasImage = ImageManager::GetInstance()->Load(filename);
@@ -76,11 +76,11 @@ namespace render
 		}
 		return false;
 	}
-	void Animation::FastForward(const int ticks)
+	void Animation::FastForward(const int32_t ticks)
 	{
 		RT_ASSERT(mFrameCount != 0);
 
-		const int frame = ticks / mSpeed;
+		const int32_t frame = ticks / mSpeed;
 		if (mType == eAnimationType::EndStop)
 		{
 			mCurrentFrame = (frame < mFrameCount) ? frame : mFrameCount - 1;

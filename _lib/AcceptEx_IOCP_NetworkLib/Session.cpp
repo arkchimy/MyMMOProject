@@ -64,7 +64,7 @@ namespace network
 		}
 		RT_ASSERT(mSenqQSize == 0);
 
-		for (int cnt = 0; cnt < mSendOv->mMsgCnt; ++cnt)
+		for (int32_t cnt = 0; cnt < mSendOv->mMsgCnt; ++cnt)
 		{
 			utility::Message* msg = static_cast<utility::Message*>(mSendOv->mSendMsgs[cnt]);
 			MY_DELETE msg;

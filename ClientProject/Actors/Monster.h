@@ -1,14 +1,15 @@
 ﻿#pragma once
+#include <cstdint>
 #include "Actor.h"
 
 namespace actors
 {
-	class Monster : public Actor
+	class Monster final : public Actor
 	{
 	public:
-		Monster(const __int64 monsterId, const float x, const float y, const __int8 monsterType, eDirection direction, __int32 hp, __int32 animFrame);
+		Monster(const int64_t monsterId, const float x, const float y, const int8_t monsterType, eDirection direction, int32_t hp, int32_t animFrame);
 
-		void OnDamaged(__int32 hp, float x, float y, eDirection direction);
+		void OnDamaged(int32_t hp, float x, float y, eDirection direction);
 		bool IsAlive() const { return mHp > 0; }
 
 	private:

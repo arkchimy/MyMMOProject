@@ -15,7 +15,7 @@ Game::Game()
 	:mSceneManager(scene::SceneManager::GetInstance())
 
 {
-	constexpr int width = 1280, height = 720;
+	constexpr int32_t width = 1280, height = 720;
 
 	WNDCLASSEX mWc = {
 		sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L,
@@ -87,7 +87,7 @@ void Game::initShaders()
 	}
 }
 
-void Game::initialize(HWND& window, int width, int height)
+void Game::initialize(HWND& window, int32_t width, int32_t height)
 {
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;

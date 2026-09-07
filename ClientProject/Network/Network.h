@@ -15,12 +15,12 @@ namespace network
 		Network();
 		~Network();
 		Network(const Network& other) = delete;
-		Network(const Network&& other) = delete;
+		Network(Network&& other) = delete;
 
 		Network& operator = (const Network& rhs) = delete;
-		Network& operator = (const Network&& rhs) = delete;
+		Network& operator=(Network&& rhs) = delete;
 
-		bool Connect(const char* ip, int port);
+		bool Connect(const char* ip, int32_t port);
 		void Disconnect();
 		bool Send(utility::Message& msg);
 		void Unmarshal();
@@ -29,13 +29,13 @@ namespace network
 		void recvThread();
 
 	private:
-		SOCKET m_socket;
-		std::thread m_recvThread;
-		utility::MyRingBuffer* m_recvBuffer;
+		SOCKET mSocket;
+		std::thread mRecvThread;
+		utility::MyRingBuffer* mRecvBuffer;
 
 	private:
-		utility::MyRingBuffer* m_packetQueue;
-		WSADATA wsadata;
+		utility::MyRingBuffer* mPacketQueue;
+		WSADATA mWsadata;
 	};
 
 } // namespace network

@@ -59,6 +59,12 @@ namespace contents
 	public:
 		FieldServer();
 		~FieldServer();
+
+		FieldServer(const FieldServer&) = delete;
+		FieldServer& operator=(const FieldServer&) = delete;
+		FieldServer(FieldServer&&) = delete;
+		FieldServer& operator=(FieldServer&&) = delete;
+
 		void Start();
 	private:
 		void createThread();
@@ -73,7 +79,7 @@ namespace contents
 		//  auth 컨텐츠
 		// ===================================
 		void authThread();
-		void heartBeatForUnAuthSession(int fieldIdx);
+		void heartBeatForUnAuthSession(int32_t fieldIdx);
 		void handleAuthReq(utility::Message& msg, CDB& db);
 		void authPacketProc(utility::Message& msg, CDB& db);
 		void sendAuthFail(const network::SeqAndIdx& sessionID);
@@ -81,27 +87,27 @@ namespace contents
 		// ===================================
 		//  Field 컨텐츠
 		// ===================================
-		void fieldThread(int fieldIdx);
-		void fieldUpdate(int fieldIdx);
-		void playerProc(int fieldidx , DWORD startTime );
+		void fieldThread(int32_t fieldIdx);
+		void fieldUpdate(int32_t fieldIdx);
+		void playerProc(int32_t fieldidx , DWORD startTime );
 		void monsterProc();
-		void spawnMonsters(int fieldIdx);
+		void spawnMonsters(int32_t fieldIdx);
 		bool possibleChasePlayer(int64_t playerID , map::Position& targetPos);
 		void processMonsterAttackHit(Monster& monster);
-		void processPlayerAttackHit(Player& player, int fieldIdx);
+		void processPlayerAttackHit(Player& player, int32_t fieldIdx);
 		// ===================================
 		//  DB 컨텐츠
 		// ===================================
-		void dbThread(int fieldIdx);
-		void requestPositionSave(int fieldIdx, Player& player);
-		void requestKillCountUpdate(int fieldIdx, Player& player, int64_t killCnt);
-		void requestRankingQuery(int fieldIdx, Player& player);
-		void dbResultPacketProc(int fieldIdx);
+		void dbThread(int32_t fieldIdx);
+		void requestPositionSave(int32_t fieldIdx, Player& player);
+		void requestKillCountUpdate(int32_t fieldIdx, Player& player, int64_t killCnt);
+		void requestRankingQuery(int32_t fieldIdx, Player& player);
+		void dbResultPacketProc(int32_t fieldIdx);
 		// ===================================
 		// Thread간의 PacketProc
 		// ===================================
-		void fieldPacketProc(int fieldIdx, utility::Message& msg);
-		void handleRegisterPlayer(int fieldIdx, utility::Message& msg);
+		void fieldPacketProc(int32_t fieldIdx, utility::Message& msg);
+		void handleRegisterPlayer(int32_t fieldIdx, utility::Message& msg);
 		// ===================================
 		// Session간의 PacketPoce
 		// ===================================
@@ -124,9 +130,9 @@ namespace contents
 		void broadcastMonsterDamaged(const Monster& monster, const std::vector<map::Sector>& nearSector);
 		void broadcastCharacterDamaged(const Player& damagedPlayer, const Monster& attacker, const std::vector<map::Sector>& nearSector);
 
-		void checkDisConnectedAndLeavePlayer(int fieldIdx);
-		void notifyDisconnect(int fieldIdx, int64_t accountNo);
-		void notifyMoveField(int fieldIdx, int64_t accountNo, int32_t targetFieldIdx);
+		void checkDisConnectedAndLeavePlayer(int32_t fieldIdx);
+		void notifyDisconnect(int32_t fieldIdx, int64_t accountNo);
+		void notifyMoveField(int32_t fieldIdx, int64_t accountNo, int32_t targetFieldIdx);
 		void authNotifyPacketProc(utility::Message& msg);
 		// ===================================
 		// Sector관련 함수
@@ -164,14 +170,14 @@ namespace contents
 		void monitorThread() const ;
 		friend std::ostream& operator >> (std::ostream& out, const FieldServer& server);
 	private:
-		volatile LONG64 mbOn;
+		volatile LONG64 mBOn;
 		volatile LONG64 mCharacterID;
 		volatile LONG64 mItemUniqueID;
 		// ===================================
 		//  auth 컨텐츠
 		// ===================================
 		std::thread mAuthThread;
-		HANDLE hAuthEvent;
+		HANDLE mHAuthEvent;
 		utility::MyRingBuffer* mNotifyMsgQ[CONFIG_FIELD_SIZE];
 		// AuthThread의 동기화 객체
 
@@ -190,8 +196,8 @@ namespace contents
 		//  DB 컨텐츠 (dbThread, 필드당 1:1 SPSC라 락 없음)
 		// ===================================
 		std::thread mDBThread[CONFIG_FIELD_SIZE];
-		HANDLE hDBEvent[CONFIG_FIELD_SIZE];
-		HANDLE hDBFinishEvent[CONFIG_FIELD_SIZE]; // 수동이벤트
+		HANDLE mHDBEvent[CONFIG_FIELD_SIZE];
+		HANDLE mHDBFinishEvent[CONFIG_FIELD_SIZE]; // 수동이벤트
 
 		utility::MyRingBuffer* mDBReqQ[CONFIG_FIELD_SIZE];   // fieldThread -> dbThread
 		utility::MyRingBuffer* mDBResQ[CONFIG_FIELD_SIZE];   // dbThread -> fieldThread
@@ -199,13 +205,13 @@ namespace contents
 		// ===================================
 		//  Sector
 		// ===================================
-		std::unordered_map<int64_t, std::vector<int>> mCacheNearSectorInfo;
+		std::unordered_map<int64_t, std::vector<int32_t>> mCacheNearSectorInfo;
 		std::map<map::Sector, std::vector<map::Sector>> mAroundSectorCache;
 		// ===================================
 		// Monitoring Data
 		// ===================================
 		std::thread mMonitorThread;
-		bool bMonitorOn;
+		bool mBMonitorOn;
 		int64_t mPlayerCnt;
 		int64_t mDisconnect_Sync;
 		int64_t mDisconnect_HeartBeat;

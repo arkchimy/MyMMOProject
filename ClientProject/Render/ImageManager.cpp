@@ -25,7 +25,6 @@ namespace render
             auto Refiter = mRefcnt.find(filename);
             if (Refiter != mRefcnt.end())
             {
-                // ?덉쑝硫?留먮룄 ?덈릺???곹솴.
                 RT_ASSERT(false);
             }
             mRefcnt.insert({ filename,0 });
@@ -37,7 +36,6 @@ namespace render
         auto Refiter = mRefcnt.find(filename);
         if (Refiter == mRefcnt.end())
         {
-            // ?놁쑝硫?留먮룄 ?덈릺???곹솴.
             RT_ASSERT(false);
         }
         ++Refiter->second;
@@ -51,7 +49,7 @@ namespace render
         {
             RT_ASSERT(false);
         }
-        int refcnt = --iter->second;
+        int32_t refcnt = --iter->second;
         if (refcnt == 0)
         {
             mRefcnt.erase(iter);

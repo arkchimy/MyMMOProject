@@ -19,13 +19,18 @@ class CProfileRegistry final
     ~CProfileRegistry() {}
 
   public:
+    CProfileRegistry(const CProfileRegistry &) = delete;
+    CProfileRegistry &operator=(const CProfileRegistry &) = delete;
+    CProfileRegistry(CProfileRegistry &&) = delete;
+    CProfileRegistry &operator=(CProfileRegistry &&) = delete;
+
     static CProfileRegistry &GetInstance()
     {
         static CProfileRegistry instance;
         return instance;
     }
     void CreateProfile(const wchar_t *fileName);
-    void ResetEntry();
+    void ResetEntry() noexcept;
     void RegistProfiler(class CProfileManager *manager) noexcept
     {
         _Acquires_exclusive_lock_(&mSrwManager);
@@ -43,8 +48,13 @@ class CProfileManager
   public:
     CProfileManager();
 
+    CProfileManager(const CProfileManager &) = delete;
+    CProfileManager &operator=(const CProfileManager &) = delete;
+    CProfileManager(CProfileManager &&) = delete;
+    CProfileManager &operator=(CProfileManager &&) = delete;
+
   public:
-    void UpdateEntry(const wchar_t *tag, int64_t distanceTime)
+    void UpdateEntry(const wchar_t *tag, int64_t distanceTime) noexcept
     {
         ProfileEntry *entry = nullptr;
         int32_t idx = 0;
@@ -75,7 +85,7 @@ class CProfileManager
 
         if (distanceTime < entry->mMin[(int32_t)eConfig::AbnormalBufferSize - 1])
         {
-            for (int i = 0; i < (int32_t)eConfig::AbnormalBufferSize; i++)
+            for (int32_t i = 0; i < (int32_t)eConfig::AbnormalBufferSize; i++)
             {
                 if (entry->mMin[i] > distanceTime)
                 {
@@ -90,7 +100,7 @@ class CProfileManager
         }
         if (entry->mMax[(int32_t)eConfig::AbnormalBufferSize - 1] < distanceTime)
         {
-            for (int i = 0; i < (int32_t)eConfig::AbnormalBufferSize; i++)
+            for (int32_t i = 0; i < (int32_t)eConfig::AbnormalBufferSize; i++)
             {
                 if (entry->mMax[i] < distanceTime)
                 {
@@ -105,7 +115,7 @@ class CProfileManager
         }
     }
     void CreateProfile(const wchar_t *fileName);
-    void ResetEntry();
+    void ResetEntry() noexcept;
 
   private:
     enum class eConfig : int64_t
@@ -126,6 +136,11 @@ class CProfileManager
                 mMin[i] = INT_MAX;
             }
         }
+
+        ProfileEntry(const ProfileEntry &) = delete;
+        ProfileEntry &operator=(const ProfileEntry &) = delete;
+        ProfileEntry(ProfileEntry &&) = delete;
+        ProfileEntry &operator=(ProfileEntry &&) = delete;
 
         const wchar_t *mTag;
         int64_t mTotalTime;
@@ -171,8 +186,13 @@ class Profile
 #endif
     }
 
+    Profile(const Profile &) = delete;
+    Profile &operator=(const Profile &) = delete;
+    Profile(Profile &&) = delete;
+    Profile &operator=(Profile &&) = delete;
+
   private:
-    void profileStart(LARGE_INTEGER *out)
+    void profileStart(LARGE_INTEGER *out) noexcept
     {
         QueryPerformanceCounter(out);
     }

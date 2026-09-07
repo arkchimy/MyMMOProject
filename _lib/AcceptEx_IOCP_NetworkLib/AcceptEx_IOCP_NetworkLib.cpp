@@ -33,9 +33,9 @@ namespace network
 		mDisConnect(0),
 		mSessionCnt(0),
 		mActiveSlotCnt(0),
-		mbOn(true)
+		mBOn(true)
 	{
-		for (int i = 0; i < CONFIG_SESSION_MAX; ++i)
+		for (int32_t i = 0; i < CONFIG_SESSION_MAX; ++i)
 		{
 			mSessions[i] = std::make_unique<Session>();
 		}
@@ -57,7 +57,7 @@ namespace network
 		linger rst{ 1,0 };
 		setsockopt(mListenSock, SOL_SOCKET, SO_LINGER, (char*)&rst, sizeof(rst));
 
-		int retval = bind(mListenSock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+		int32_t retval = bind(mListenSock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
 		RT_ASSERT(retval != SOCKET_ERROR);
 
 		retval = listen(mListenSock, SOMAXCONN_HINT(65535));
@@ -79,7 +79,7 @@ namespace network
 	}
 	void NetworkLib::start()
 	{
-		for (int idx = 0; idx < CONFIG_WORKER_THREAD_CNT; ++idx)
+		for (int32_t idx = 0; idx < CONFIG_WORKER_THREAD_CNT; ++idx)
 		{
 			std::wstring threadName = L"IOCP_WorkerThread" + std::to_wstring(idx);
 			mWorkerThreads[idx] = std::thread(&NetworkLib::workerThread, this);
@@ -88,7 +88,7 @@ namespace network
 	}
 	void NetworkLib::stop()
 	{
-		InterlockedExchange(&mbOn, 0);
+		InterlockedExchange(&mBOn, 0);
 		closesocket(mListenSock);
 
 		disconnectAllSession();
@@ -104,12 +104,12 @@ namespace network
 			YieldProcessor();
 		}
 		//종료 메세지
-		for (int i = 0; i < CONFIG_WORKER_THREAD_CNT; ++i)
+		for (int32_t i = 0; i < CONFIG_WORKER_THREAD_CNT; ++i)
 		{
 			PostQueuedCompletionStatus(mHcp, 0, 0, nullptr);
 		}
 
-		for (int idx = 0; idx < CONFIG_WORKER_THREAD_CNT;++idx)
+		for (int32_t idx = 0; idx < CONFIG_WORKER_THREAD_CNT;++idx)
 		{
 			mWorkerThreads[idx].join();
 		}
@@ -191,7 +191,7 @@ namespace network
 			printf("[NetworkLib] 세션 풀 고갈 - 최대 접속 수 초과\n");
 			return;
 		}
-		if (mbOn == false)
+		if (mBOn == false)
 		{
 			return;
 		}
@@ -230,7 +230,7 @@ namespace network
 				sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &recvByte, session.mAcceptOv); // 주석
 			if (retval == false)
 			{
-				int lastError = WSAGetLastError();
+				int32_t lastError = WSAGetLastError();
 				if (lastError != ERROR_IO_PENDING)
 				{
 					closesocket(session.mSock);
@@ -248,7 +248,7 @@ namespace network
 	void NetworkLib::completeAcceptEx(Session& session)
 	{
 		// mIOcnt=1 / mOutstandingSlotCnt++는 registerAcceptEx(요청 시점)에서 이미 처리됨
-		if (mbOn == false)
+		if (mBOn == false)
 		{
 			return;
 		}
@@ -265,7 +265,7 @@ namespace network
 		//std::cout << "COMPLETE_ACCEPT" << "IOCOUNT : " << 1 << "\n";
 		//std::cout << "Accecpt : " << "session_sock : " << session.mSock << "ID:" << session.mSessionID.Value << "\n";
 		SOCKADDR_IN addr{};
-		int nameLen = sizeof(addr);
+		int32_t nameLen = sizeof(addr);
 		getpeername(session.mSock, (sockaddr*)&addr, &nameLen);
 
 		onAccept(addr, session.mSessionID);
@@ -308,7 +308,7 @@ namespace network
 			short ioCount = InterlockedIncrement16(&session.mIOcnt);
 			//std::cout << "Resigte_Recv" << "IOCOUNT : " << ioCount << "\n";
 			// 수신 작업이 즉시 완료되면 WSARecv 는 0을 반환합니다.그렇지 않으면 SOCKET_ERROR 값이 반환되
-			int recvRetval = WSARecv(session.mSock, wsabuf, bufCnt, NULL, &Flags, session.mRecvOv, NULL);
+			int32_t recvRetval = WSARecv(session.mSock, wsabuf, bufCnt, NULL, &Flags, session.mRecvOv, NULL);
 			if (recvRetval == SOCKET_ERROR)
 			{
 				checkAndHandleIoError(session, WSAGetLastError());
@@ -379,13 +379,13 @@ namespace network
 
 	void NetworkLib::registerSend(Session& session)
 	{
-		__int16 msgCnt = static_cast<__int16>(CONFIG_SEND_MESSAGE_MAXCOUNT < session.mSenqQSize ? CONFIG_SEND_MESSAGE_MAXCOUNT : session.mSenqQSize);
+		int16_t msgCnt = static_cast<int16_t>(CONFIG_SEND_MESSAGE_MAXCOUNT < session.mSenqQSize ? CONFIG_SEND_MESSAGE_MAXCOUNT : session.mSenqQSize);
 
 		if (msgCnt == 0)
 		{
 			if (_InterlockedCompareExchange8(&session.mSendFlag, 0, 1) == 1)
 			{
-				msgCnt = static_cast<__int16>(CONFIG_SEND_MESSAGE_MAXCOUNT < session.mSenqQSize ?
+				msgCnt = static_cast<int16_t>(CONFIG_SEND_MESSAGE_MAXCOUNT < session.mSenqQSize ?
 					CONFIG_SEND_MESSAGE_MAXCOUNT : session.mSenqQSize);
 				if (msgCnt != 0)
 				{
@@ -404,7 +404,7 @@ namespace network
 
 		WSABUF wsabuf[CONFIG_SEND_MESSAGE_MAXCOUNT];
 		ZeroMemory(wsabuf, sizeof(wsabuf));
-		for (__int16 cnt = 0; cnt < msgCnt; ++cnt)
+		for (int16_t cnt = 0; cnt < msgCnt; ++cnt)
 		{
 			utility::Message* msg = session.DeQueueMsgOrNull();
 			RT_ASSERT(msg != nullptr);
@@ -424,7 +424,7 @@ namespace network
 			DWORD Flags = 0;
 			short ioCount = InterlockedIncrement16(&session.mIOcnt);
 			//std::cout << "Resigte Send" << "IOCOUNT : " << ioCount << "\n";
-			int sendRetval = WSASend(session.mSock, wsabuf, msgCnt, NULL, Flags, session.mSendOv, NULL);
+			int32_t sendRetval = WSASend(session.mSock, wsabuf, msgCnt, NULL, Flags, session.mSendOv, NULL);
 			if (sendRetval == SOCKET_ERROR)
 			{
 				checkAndHandleIoError(session, WSAGetLastError());
@@ -438,7 +438,7 @@ namespace network
 		InterlockedAdd64(&mSendCnt, sendOv.mMsgCnt);
 
 		// 완료통지에서 이미 보낸 MSG 반환.
-		for (__int16 idx = 0; idx < sendOv.mMsgCnt; ++idx)
+		for (int16_t idx = 0; idx < sendOv.mMsgCnt; ++idx)
 		{
 			utility::Message* msg = static_cast<utility::Message*>(sendOv.mSendMsgs[idx]);
 			onSend(msg);
@@ -462,7 +462,7 @@ namespace network
 		stackSessionIdx_Push(session.mSessionID.Idx);
 		registerAcceptEx();
 	}
-	void NetworkLib::checkAndHandleIoError(Session& session, const int lastError)
+	void NetworkLib::checkAndHandleIoError(Session& session, const int32_t lastError)
 	{
 		switch (lastError)
 		{

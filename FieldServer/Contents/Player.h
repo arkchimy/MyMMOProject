@@ -17,7 +17,7 @@ namespace contents
 		Stun,
 	};
 
-	class Player
+	class Player final
 	{
 		friend class FieldServer;
 	public:
@@ -36,7 +36,6 @@ namespace contents
 		int32_t GetAnimFrame() const { return mAnimFrame; }
 		bool IsDead() const { return mState == ePlayerState::Dead; }
 
-		void takeDamage(int32_t damage, const class Monster* const attacker);
 		ePlayerState GetSpawnState() const { return mState; }
 		eDirection GetDirection() const { return mDirection; }
 		map::Position GetPosition() const { return mPos; }
@@ -45,6 +44,7 @@ namespace contents
 		void changeState(ePlayerState state);
 		void resetAnimStart();
 		void moveUpdate();
+		void takeDamage(int32_t damage, const class Monster* const attacker);
 	private:
 		utility::MyRingBuffer* mRecvQ;
 		const SOCKADDR_IN        mAddr;
@@ -57,7 +57,7 @@ namespace contents
 
 		float mSpeed;
 		DWORD mLastTime;
-		__int32 mAnimFrame;   // mMoveFrame → 범용화 (이동/공격은 상호배타적이라 공유 가능)
+		int32_t mAnimFrame;   // mMoveFrame → 범용화 (이동/공격은 상호배타적이라 공유 가능)
 
 		map::Sector mCurrentSector;
 		map::Sector mDestSector;
@@ -69,7 +69,7 @@ namespace contents
 		ePlayerState mState;
 		int8_t mCharacterType;
 		char mNickname[20];
-		bool bConnect;
+		bool mBConnect;
 		uint64_t mSyncCnt;
 
 		int32_t mAttackPower;

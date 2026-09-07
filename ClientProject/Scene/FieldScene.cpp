@@ -29,8 +29,8 @@ namespace scene
 		mCamera = new render::Camera();
 		mCamera->SetTarget(player);
 
-		UIArr[0] = new ui::HPBar();
-		static_cast<ui::HPBar*>(UIArr[0])->SetTarget(static_cast<actors::Player*>(player));
+		mUIArr[0] = new ui::HPBar();
+		static_cast<ui::HPBar*>(mUIArr[0])->SetTarget(static_cast<actors::Player*>(player));
 	}
 
 	FieldScene::~FieldScene()
@@ -57,11 +57,11 @@ namespace scene
 		mNextScene = nullptr;
 		mLocalPlayer = nullptr;
 
-		for (int i = 0; i < FIELD_CONFIG_UI_LEN; ++i)
+		for (int32_t i = 0; i < FIELD_CONFIG_UI_LEN; ++i)
 		{
-			if (UIArr[i] != nullptr)
+			if (mUIArr[i] != nullptr)
 			{
-				delete UIArr[i];
+				delete mUIArr[i];
 			}
 		}
 	}
@@ -90,11 +90,11 @@ namespace scene
 		RT_ASSERT(mCamera != nullptr);
 		mCamera->Update();
 
-		for (int i = 0; i < FIELD_CONFIG_UI_LEN; ++i)
+		for (int32_t i = 0; i < FIELD_CONFIG_UI_LEN; ++i)
 		{
-			if (UIArr[i] != nullptr)
+			if (mUIArr[i] != nullptr)
 			{
-				UIArr[i]->Update();
+				mUIArr[i]->Update();
 			}
 		}
 	}
@@ -146,11 +146,11 @@ namespace scene
 			item->Render(camX, camY);
 		}
 
-		for (int i = 0; i < FIELD_CONFIG_UI_LEN; ++i)
+		for (int32_t i = 0; i < FIELD_CONFIG_UI_LEN; ++i)
 		{
-			if (UIArr[i] != nullptr)
+			if (mUIArr[i] != nullptr)
 			{
-				UIArr[i]->Render();
+				mUIArr[i]->Render();
 			}
 		}
 	}
@@ -159,9 +159,9 @@ namespace scene
 	{
 		return mNextScene;
 	}
-	bool FieldScene::PacketProc(utility::Message& msg)
+	bool FieldScene::packetProc(utility::Message& msg)
 	{
-		__int16 type;
+		int16_t type;
 		msg >> type;
 
 		switch ((PacketType)type)
@@ -231,15 +231,15 @@ namespace scene
 	void FieldScene::onOtherCharacterSpawn(utility::Message& msg)
 	{
 		PacketType::OTHER_CHARACTER_SPAWN;
-		__int64 characterId;
+		int64_t characterId;
 		float x, y;
-		__int8 characterType;
+		int8_t characterType;
 
 		int8_t state;
-		__int8 direction;
+		int8_t direction;
 		float speed;
 
-		__int32 animFrame;
+		int32_t animFrame;
 
 		char nickname[20];
 
@@ -273,20 +273,20 @@ namespace scene
 	void FieldScene::onOtherCharacterSpawnBatch(utility::Message& msg)
 	{
 		PacketType::OTHER_CHARACTER_SPAWN_BATCH;
-		__int16 cnt;
+		int16_t cnt;
 		msg >> cnt;
 
-		for (__int16 i = 0; i < cnt; ++i)
+		for (int16_t i = 0; i < cnt; ++i)
 		{
-			__int64 characterId;
+			int64_t characterId;
 			float x, y;
-			__int8 characterType;
+			int8_t characterType;
 
 			int8_t state;
-			__int8 direction;
+			int8_t direction;
 			float speed;
 
-			__int32 animFrame;
+			int32_t animFrame;
 
 			char nickname[20];
 
@@ -322,7 +322,7 @@ namespace scene
 	void FieldScene::onCharacterDespawn(utility::Message& msg)
 	{
 		PacketType::CHARACTER_DESPAWN;
-		__int64 characterId;
+		int64_t characterId;
 		msg >> characterId;
 
 		auto it = mActors.find(characterId);
@@ -336,10 +336,10 @@ namespace scene
 	{
 		//TODO : Speed도 서버가 보내줘야할 것 같다.
 		PacketType::MOVE_START;
-		__int64 characterId;
+		int64_t characterId;
 		float   x;
 		float   y;
-		__int8  direction;
+		int8_t  direction;
 		float  speed;
 		msg >> characterId >> x >> y >> direction >> speed;
 		actors::Actor& actor = *mActors.find(characterId)->second;
@@ -348,10 +348,10 @@ namespace scene
 	void FieldScene::onCharacterMoveStop(utility::Message& msg)
 	{
 		PacketType::MOVE_STOP;
-		__int64 characterId;
+		int64_t characterId;
 		float   x;
 		float   y;
-		__int8  direction;
+		int8_t  direction;
 		msg >> characterId >> x >> y >> direction;
 		if (characterId == mLocalPlayer->GetCharacterId())
 		{
@@ -365,7 +365,7 @@ namespace scene
 	}
 	void FieldScene::onOtherCharacterAttack(utility::Message& msg)
 	{
-		__int64 characterId;
+		int64_t characterId;
 		msg >> characterId;
 
 		auto iter = mActors.find(characterId);
@@ -374,10 +374,10 @@ namespace scene
 	}
 	void FieldScene::onMonsterMoveStart(utility::Message& msg)
 	{
-		__int64 monsterId;
+		int64_t monsterId;
 		float   x;
 		float   y;
-		__int8  direction;
+		int8_t  direction;
 		float   speed;
 		msg >> monsterId >> x >> y >> direction >> speed;
 
@@ -387,10 +387,10 @@ namespace scene
 	}
 	void FieldScene::onMonsterMoveStop(utility::Message& msg)
 	{
-		__int64 monsterId;
+		int64_t monsterId;
 		float   x;
 		float   y;
-		__int8  direction;
+		int8_t  direction;
 		msg >> monsterId >> x >> y >> direction;
 
 		auto iter = mMonsterActors.find(monsterId);
@@ -406,13 +406,13 @@ namespace scene
 		//	Dead, 4
 		//	Return,//  스폰지역하고 매우 멀어질경우 스폰지역으로 되돌아감.
 
-		__int64 monsterId;
+		int64_t monsterId;
 		float x, y;
 		int8_t state;
-		__int8 direction;
-		__int32 hp;
-		__int8 monsterType;
-		__int32 animFrame;
+		int8_t direction;
+		int32_t hp;
+		int8_t monsterType;
+		int32_t animFrame;
 		msg >> monsterId >> x >> y
 			>> state
 			>> direction >> hp >> monsterType >> animFrame;
@@ -437,18 +437,18 @@ namespace scene
 	}
 	void FieldScene::onMonsterSpawnBatch(utility::Message& msg)
 	{
-		__int16 cnt;
+		int16_t cnt;
 		msg >> cnt;
 
-		for (__int16 i = 0; i < cnt; ++i)
+		for (int16_t i = 0; i < cnt; ++i)
 		{
-			__int64 monsterId;
+			int64_t monsterId;
 			float x, y;
 			int8_t state;
-			__int8 direction;
-			__int32 hp;
-			__int8 monsterType;
-			__int32 animFrame;
+			int8_t direction;
+			int32_t hp;
+			int8_t monsterType;
+			int32_t animFrame;
 
 			msg >> monsterId >> x >> y
 				>> state
@@ -476,10 +476,10 @@ namespace scene
 	void FieldScene::onMonsterDamaged(utility::Message& msg)
 	{
 
-		__int64 monsterId;
-		__int32 hp;
+		int64_t monsterId;
+		int32_t hp;
 		float x, y;
-		__int8 direction;
+		int8_t direction;
 		msg >> monsterId >> hp >> x >> y >> direction;
 
 		auto iter = mMonsterActors.find(monsterId);
@@ -492,7 +492,7 @@ namespace scene
 	}
 	void FieldScene::onMonsterAttack(utility::Message& msg)
 	{
-		__int64 monsterId;
+		int64_t monsterId;
 		msg >> monsterId;
 
 		auto iter = mMonsterActors.find(monsterId);
@@ -501,11 +501,11 @@ namespace scene
 	}
 	void FieldScene::onCharacterDamaged(utility::Message& msg)
 	{
-		__int64 characterId;
-		__int32 hp;
+		int64_t characterId;
+		int32_t hp;
 		float x, y;
-		__int8 direction;
-		__int64 monsterId;   // 누구한테 맞았는지 — 실제 클라는 유저가 직접 조작하므로 미사용, 프레이밍 유지 위해 읽기만 함
+		int8_t direction;
+		int64_t monsterId;   // 누구한테 맞았는지 — 실제 클라는 유저가 직접 조작하므로 미사용, 프레이밍 유지 위해 읽기만 함
 		msg >> characterId >> hp >> x >> y >> direction >> monsterId;
 
 		if (characterId == mLocalPlayer->GetCharacterId())
@@ -523,8 +523,8 @@ namespace scene
 	}
 	void FieldScene::onItemSpawn(utility::Message& msg)
 	{
-		__int64 itemUniqueId;
-		__int8  itemId;
+		int64_t itemUniqueId;
+		int8_t  itemId;
 		float   x, y;
 		msg >> itemUniqueId >> itemId >> x >> y;
 
@@ -534,13 +534,13 @@ namespace scene
 	}
 	void FieldScene::onItemSpawnBatch(utility::Message& msg)
 	{
-		__int16 cnt;
+		int16_t cnt;
 		msg >> cnt;
 
-		for (__int16 i = 0; i < cnt; ++i)
+		for (int16_t i = 0; i < cnt; ++i)
 		{
-			__int64 itemUniqueId;
-			__int8  itemId;
+			int64_t itemUniqueId;
+			int8_t  itemId;
 			float   x, y;
 			msg >> itemUniqueId >> itemId >> x >> y;
 
@@ -551,7 +551,7 @@ namespace scene
 	}
 	void FieldScene::onItemDespawn(utility::Message& msg)
 	{
-		__int64 itemUniqueId;
+		int64_t itemUniqueId;
 		msg >> itemUniqueId;
 
 		auto it = mItemActors.find(itemUniqueId);
@@ -563,14 +563,14 @@ namespace scene
 	}
 	void FieldScene::onLootRes(utility::Message& msg)
 	{
-		__int8  result;
-		__int8  itemId;
-		__int32 count;
+		int8_t  result;
+		int8_t  itemId;
+		int32_t count;
 		msg >> result >> itemId >> count;
 
 		if (result == 0)
 		{
-			std::cout << "[Loot] 성공 - itemId:" << static_cast<int>(itemId) << " count:" << count << "\n";
+			std::cout << "[Loot] 성공 - itemId:" << static_cast<int32_t>(itemId) << " count:" << count << "\n";
 		}
 		else
 		{
@@ -579,21 +579,21 @@ namespace scene
 	}
 	void FieldScene::onRankingRes(utility::Message& msg)
 	{
-		__int16 topCnt;
+		int16_t topCnt;
 		msg >> topCnt;
 
 		std::cout << "===== 랭킹 TOP " << topCnt << " =====\n";
-		for (int i = 0; i < topCnt; ++i)
+		for (int32_t i = 0; i < topCnt; ++i)
 		{
 			char nickname[20];
-			__int64 killCount;
+			int64_t killCount;
 			msg.GetData(nickname, sizeof(nickname));
 			msg >> killCount;
 			std::cout << (i + 1) << "위  " << nickname << "  " << killCount << "kill\n";
 		}
 
-		__int64 myRank;
-		__int64 myKillCount;
+		int64_t myRank;
+		int64_t myKillCount;
 		msg >> myRank >> myKillCount;
 
 		if (myRank == -1)
@@ -607,7 +607,7 @@ namespace scene
 	}
 	void FieldScene::onMonsterDespawn(utility::Message& msg)
 	{
-		__int64 monsterId;
+		int64_t monsterId;
 		msg >> monsterId;
 
 		auto it = mMonsterActors.find(monsterId);
@@ -621,20 +621,20 @@ namespace scene
 	{
 		bool keyDown = (GetForegroundWindow() == Game::GetInstance().GetWindows()) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
 
-		if (keyDown && !mbAttackKeyDown)
+		if (keyDown && !mBAttackKeyDown)
 		{
 			if (static_cast<actors::Player*>(mLocalPlayer)->TryAttack())
 			{
-				constexpr __int8 skillId = 0;
+				constexpr int8_t skillId = 0;
 				float rangeLen = 0.f;
-				__int16 maxTargetCnt = 0;
+				int16_t maxTargetCnt = 0;
 
 				if (getSkillConfig(skillId, rangeLen, maxTargetCnt))
 				{
 					float playerX = mLocalPlayer->GetX();
 					float playerY = mLocalPlayer->GetY();
 
-					std::vector<__int64> candidates;
+					std::vector<int64_t> candidates;
 					for (auto& element : mMonsterActors)
 					{
 						actors::Monster* monster = static_cast<actors::Monster*>(element.second);
@@ -645,7 +645,7 @@ namespace scene
 						if (isInAttackRange(playerX, playerY, monster->GetX(), monster->GetY(), rangeLen))
 						{
 							candidates.push_back(monster->GetCharacterId());
-							if (static_cast<__int16>(candidates.size()) >= maxTargetCnt)
+							if (static_cast<int16_t>(candidates.size()) >= maxTargetCnt)
 							{
 								break;
 							}
@@ -653,16 +653,16 @@ namespace scene
 					}
 
 					Header header{ 0 };
-					header.Len = static_cast<int16_t>(sizeof(__int16) + sizeof(skillId) + sizeof(__int16) + sizeof(__int64) * static_cast<int>(candidates.size()));
+					header.Len = static_cast<int16_t>(sizeof(int16_t) + sizeof(skillId) + sizeof(int16_t) + sizeof(int64_t) * static_cast<int32_t>(candidates.size()));
 					header.RandKey = 0;
 
 					utility::Message msg;
 					msg.InitMessage(0, 0);
 					msg.PutData(&header, sizeof(header));
-					msg << static_cast<__int16>(PacketType::PLAYER_ATTACK_REQ);
+					msg << static_cast<int16_t>(PacketType::PLAYER_ATTACK_REQ);
 					msg << skillId;
-					msg << static_cast<__int16>(candidates.size());
-					for (__int64 id : candidates)
+					msg << static_cast<int16_t>(candidates.size());
+					for (int64_t id : candidates)
 					{
 						msg << id;
 					}
@@ -670,18 +670,18 @@ namespace scene
 				}
 			}
 		}
-		mbAttackKeyDown = keyDown;
+		mBAttackKeyDown = keyDown;
 	}
 	void FieldScene::updateLootInput()
 	{
 		bool keyDown = (GetForegroundWindow() == Game::GetInstance().GetWindows()) && (GetAsyncKeyState('F') & 0x8000);
 
-		if (keyDown && !mbLootKeyDown)
+		if (keyDown && !mBLootKeyDown)
 		{
 			float playerX = mLocalPlayer->GetX();
 			float playerY = mLocalPlayer->GetY();
 
-			__int64 nearestId = 0;
+			int64_t nearestId = 0;
 			float nearestDist = LOOT_RANGE;
 			bool bFound = false;
 
@@ -701,35 +701,35 @@ namespace scene
 			if (bFound)
 			{
 				Header header{ 0 };
-				header.Len = static_cast<int16_t>(sizeof(__int16) + sizeof(__int64));
+				header.Len = static_cast<int16_t>(sizeof(int16_t) + sizeof(int64_t));
 				header.RandKey = 0;
 
 				utility::Message msg;
 				msg.InitMessage(0, 0);
 				msg.PutData(&header, sizeof(header));
-				msg << static_cast<__int16>(PacketType::LOOT_REQ);
+				msg << static_cast<int16_t>(PacketType::LOOT_REQ);
 				msg << nearestId;
 				RT_ASSERT(g_Network.Send(msg) == true);
 			}
 		}
-		mbLootKeyDown = keyDown;
+		mBLootKeyDown = keyDown;
 	}
 	void FieldScene::updateRankingInput()
 	{
 		bool keyDown = (GetForegroundWindow() == Game::GetInstance().GetWindows()) && (GetAsyncKeyState('R') & 0x8000);
 
-		if (keyDown && !mbRankingKeyDown)
+		if (keyDown && !mBRankingKeyDown)
 		{
 			Header header{ 0 };
-			header.Len = static_cast<int16_t>(sizeof(__int16));
+			header.Len = static_cast<int16_t>(sizeof(int16_t));
 			header.RandKey = 0;
 
 			utility::Message msg;
 			msg.InitMessage(0, 0);
 			msg.PutData(&header, sizeof(header));
-			msg << static_cast<__int16>(PacketType::RANKING_REQ);
+			msg << static_cast<int16_t>(PacketType::RANKING_REQ);
 			RT_ASSERT(g_Network.Send(msg) == true);
 		}
-		mbRankingKeyDown = keyDown;
+		mBRankingKeyDown = keyDown;
 	}
 };

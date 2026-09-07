@@ -41,7 +41,7 @@ namespace utility
 		void MoveFront(const int32_t move);
 		void MoveRear(const int32_t move);
 
-		inline uint8_t IsFail() const { return bFail; }
+		inline uint8_t IsFail() const { return mBFail; }
 		void ClearBuffer();
 
 		inline char* GetFrontPtr() const { return mFront; }
@@ -55,7 +55,7 @@ namespace utility
 		char* mFront;
 		char* mRear;
 
-		uint8_t bFail;
+		uint8_t mBFail;
 	};
 }
 

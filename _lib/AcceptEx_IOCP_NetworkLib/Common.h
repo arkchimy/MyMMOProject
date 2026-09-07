@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -28,16 +29,27 @@
 
 #include <Windows.h>
 
-void *operator new(size_t size,const char* file, int line);
-void *operator new[](size_t size, const char *file, int line);
-void operator delete(void *ptr, const char *file, int line);
-void operator delete[](void *ptr, const char *file, int line);
+void *operator new(size_t size,const char* file, int32_t line);
+void *operator new[](size_t size, const char *file, int32_t line);
+void operator delete(void *ptr, const char *file, int32_t line);
+void operator delete[](void *ptr, const char *file, int32_t line);
 
 struct MyHeap
 {
+    friend void *operator new(size_t size, const char *file, int32_t line);
+    friend void *operator new[](size_t size, const char *file, int32_t line);
+    friend struct MyDeleteHelper;
+
     MyHeap();
     ~MyHeap();
-    HANDLE sMyHeap;
+
+    MyHeap(const MyHeap &) = delete;
+    MyHeap &operator=(const MyHeap &) = delete;
+    MyHeap(MyHeap &&) = delete;
+    MyHeap &operator=(MyHeap &&) = delete;
+
+  private:
+    HANDLE mSMyHeap;
 };
 
 extern MyHeap gHeap;
@@ -47,7 +59,7 @@ struct MyDeleteHelper
     void operator,(T* ptr)
     {
         ptr->~T();
-        BOOL bSuccess = HeapFree(gHeap.sMyHeap, 0, ptr);
+        BOOL bSuccess = HeapFree(gHeap.mSMyHeap, 0, ptr);
         RT_ASSERT(bSuccess != 0);
     }
 };

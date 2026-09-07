@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cstdint>
+
 #pragma pack(1)
 struct Header
 {
-    __int16 Len;
-    __int8 RandKey;
+    int16_t Len;
+    int8_t RandKey;
 };
 #pragma pack()

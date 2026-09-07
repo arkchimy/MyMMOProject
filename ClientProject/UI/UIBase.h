@@ -14,6 +14,11 @@ namespace ui
 		UIBase();
 		virtual ~UIBase() = default;
 
+		UIBase(const UIBase&) = delete;
+		UIBase& operator=(const UIBase&) = delete;
+		UIBase(UIBase&&) = delete;
+		UIBase& operator=(UIBase&&) = delete;
+
 	public:
 		virtual void Update() = 0;
 		virtual void Render();

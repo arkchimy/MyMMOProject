@@ -1,4 +1,5 @@
-﻿#include <iomanip>
+﻿#include <cstdint>
+#include <iomanip>
 #include <iostream>
 
 #include <windows.h>
@@ -29,7 +30,7 @@ int main()
     bool bRenderSkip = false;
     DWORD frameCnt = 0;
     DWORD renderCnt = 0;
-    int delayCnt = 0;
+    int32_t delayCnt = 0;
     DWORD updateDelay = 15;
 
     MSG msg = {};
@@ -45,8 +46,8 @@ int main()
             startTime = timeGetTime();
             if (nextTime <= startTime)
             {
-                int loopCnt = (startTime - nextTime) / FRAME_INTERVAL  + 1;
-                for(int cnt = 0; cnt < loopCnt ; ++cnt)
+                int32_t loopCnt = (startTime - nextTime) / FRAME_INTERVAL  + 1;
+                for(int32_t cnt = 0; cnt < loopCnt ; ++cnt)
                 {
                     ++frameCnt;
                     game.Update();

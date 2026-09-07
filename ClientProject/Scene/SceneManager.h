@@ -5,11 +5,16 @@ namespace scene
 }
 namespace scene
 {
-	class SceneManager
+	class SceneManager final
 	{
 	private:
 		SceneManager();
 	public:
+		SceneManager(const SceneManager&) = delete;
+		SceneManager& operator=(const SceneManager&) = delete;
+		SceneManager(SceneManager&&) = delete;
+		SceneManager& operator=(SceneManager&&) = delete;
+
 		static SceneManager* const GetInstance();
 		void InitScene(ISceneBase* const scene);
 

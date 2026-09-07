@@ -27,6 +27,11 @@ namespace network
 		NetworkLib();
 		virtual ~NetworkLib() {}
 
+		NetworkLib(const NetworkLib &) = delete;
+		NetworkLib &operator=(const NetworkLib &) = delete;
+		NetworkLib(NetworkLib &&) = delete;
+		NetworkLib &operator=(NetworkLib &&) = delete;
+
 	protected:
 		void start();
 		void stop();
@@ -63,7 +68,7 @@ namespace network
 
 		void completeRelease(Session& session);
 
-		void checkAndHandleIoError(Session& session, const int lastError);
+		void checkAndHandleIoError(Session& session, const int32_t lastError);
 
 		bool stackSessionIdx_Pop(ull& out);
 		void stackSessionIdx_Push(const ull& input);
@@ -74,7 +79,7 @@ namespace network
 	private:
 		std::thread mWorkerThreads[CONFIG_WORKER_THREAD_CNT];
 		SOCKET mListenSock;
-		uint64_t mbOn;
+		uint64_t mBOn;
 		HANDLE mHcp; // iocpHandle
 		std::unique_ptr<Session> mSessions[CONFIG_SESSION_MAX];
 

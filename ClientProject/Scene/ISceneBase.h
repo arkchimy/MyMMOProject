@@ -16,7 +16,7 @@ namespace scene
 		virtual void update() = 0;
 		virtual void render() = 0;
 		virtual ISceneBase* getNextSceneOrNull() = 0;
-		virtual bool PacketProc(utility::Message& msg) = 0;
+		virtual bool packetProc(utility::Message& msg) = 0;
 	};
 
 }

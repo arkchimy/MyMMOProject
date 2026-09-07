@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <iomanip>
@@ -22,12 +23,19 @@ public:
 	RAIIwsadata()
 	{
 		//성공하면 WSAStartup 함수는 0을 반환
-		int retval = WSAStartup(MAKEWORD(2, 2), &wsadata);
+		int32_t retval = WSAStartup(MAKEWORD(2, 2), &mWsadata);
 		RT_ASSERT(retval == 0, "WSAStartup 실패");
 	}
 	~RAIIwsadata()
 	{
 		WSACleanup();
 	}
-	WSADATA wsadata;
+
+	RAIIwsadata(const RAIIwsadata&) = delete;
+	RAIIwsadata& operator=(const RAIIwsadata&) = delete;
+	RAIIwsadata(RAIIwsadata&&) = delete;
+	RAIIwsadata& operator=(RAIIwsadata&&) = delete;
+
+private:
+	WSADATA mWsadata;
 };

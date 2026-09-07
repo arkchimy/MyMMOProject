@@ -14,7 +14,7 @@ namespace contents
 
 	// 몬스터 타입이 지금은 1종류뿐이라 공용 테이블 하나로 시작.
 	// 나중에 몬스터 타입별로 나뉘면 monsterType → 테이블 매핑으로 확장.
-	inline const DropEntry kDropTable[] =
+	inline constexpr DropEntry kDropTable[] =
 	{
 		{ eItemId::Gold,   1, 50 },
 		{ eItemId::Gold,   5, 20 },

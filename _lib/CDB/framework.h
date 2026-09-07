@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용을 Windows 헤더에서 제외합니다.
+#include <cstdint>
 #include <mysql.h>
 #include <string>
 #include <exception>
@@ -16,6 +17,8 @@ enum
 struct stResultSet
 {
     friend class CDB;
+
+    stResultSet() = default;
     ~stResultSet()
     {
         if (mResult != nullptr)
@@ -23,6 +26,12 @@ struct stResultSet
             mysql_free_result(mResult);
         }
     }
+
+    stResultSet(const stResultSet&) = delete;
+    stResultSet& operator=(const stResultSet&) = delete;
+    stResultSet(stResultSet&&) = delete;
+    stResultSet& operator=(stResultSet&&) = delete;
+
     bool Fetch();
     const char* GetValue(const char* column) const;
 
@@ -32,15 +41,15 @@ private:
     std::unordered_map<std::string, unsigned int> mColumnIndex;
 };
 
-class CDBException : public std::exception
+class CDBException final : public std::exception
 {
 public:
-    CDBException(unsigned int errNo, const char* msg) : mErrNo(errNo)
+    CDBException(unsigned int errNo, const char* msg) : mErrNo(errNo), mMsg{}
     {
         strncpy_s(mMsg, msg, sizeof(mMsg) - 1);
     }
     const char* what() const noexcept override { return mMsg; }
-    unsigned int code() const { return mErrNo; }
+    unsigned int code() const noexcept { return mErrNo; }
 private:
     unsigned int mErrNo;
     char mMsg[CONFIG_MAX_ERROR_LEN];
@@ -53,14 +62,20 @@ private:
 public:
     CDB();
     ~CDB() { Disconnect(); }
+
+    CDB(const CDB&) = delete;
+    CDB& operator=(const CDB&) = delete;
+    CDB(CDB&&) = delete;
+    CDB& operator=(CDB&&) = delete;
+
 public:
-    bool Connect(const char* host, const char* user, const char* pass, const char* dbName, int port);
+    bool Connect(const char* host, const char* user, const char* pass, const char* dbName, int32_t port);
     void Disconnect();
     bool Execute(const char* query);
     bool Query(const char* query, stResultSet& out);
 
-    void ClearError() { bFailed = false; }
-    bool IsFailed() const { return bFailed; }
+    void ClearError() noexcept { mBFailed = false; }
+    bool IsFailed() const noexcept { return mBFailed; }
 
 private:
     void fail(const char* context);
@@ -71,7 +86,7 @@ private:
 private:
     MYSQL* mConn = nullptr;
 
-    bool bFailed = false;
+    bool mBFailed = false;
     unsigned int mLastErrNo = 0;
     char mLastError[CONFIG_MAX_ERROR_LEN] = {};
     std::string mFilename;

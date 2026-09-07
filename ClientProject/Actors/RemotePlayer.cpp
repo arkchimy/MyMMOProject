@@ -34,7 +34,7 @@ namespace toroko
 
 namespace actors
 {
-	RemotePlayer::RemotePlayer(const __int64 characterId, const float x, const float y, const __int8 characterType, eDirection direction)
+	RemotePlayer::RemotePlayer(const int64_t characterId, const float x, const float y, const int8_t characterType, eDirection direction)
 		: Actor(characterId)
 		, mCharacterType(characterType)
 		, mHp(PLAYER_MAX_HP)
@@ -56,17 +56,17 @@ namespace actors
 			--mHitTimer;
 			if (mHitTimer == 0)
 			{
-				changeAnimation(mDirection, mbMove ? eActorState::Move : eActorState::Idle);
+				changeAnimation(mDirection, mBMove ? eActorState::Move : eActorState::Idle);
 			}
 			return;
 		}
 
-		if (mbMove)
+		if (mBMove)
 		{
 			moveUpdate();
 		}
 	}
-	void RemotePlayer::OnDamaged(__int32 hp, float x, float y, eDirection direction, int fastForwardTicks)
+	void RemotePlayer::OnDamaged(int32_t hp, float x, float y, eDirection direction, int32_t fastForwardTicks)
 	{
 		mHp = hp;
 		mX = x;
@@ -75,7 +75,7 @@ namespace actors
 		mStartY = y;
 		mMoveFrame = 0;
 		mDirection = direction;
-		mbMove = false;
+		mBMove = false;
 
 		if (mHp <= 0)
 		{
@@ -90,8 +90,8 @@ namespace actors
 	}
 	void RemotePlayer::loadTorokoSprite()
 	{
-		int offset = 0;
-		for (int i = 0; i < 8; ++i)
+		int32_t offset = 0;
+		for (int32_t i = 0; i < 8; ++i)
 		{
 			eDirection dir;
 			switch (i)

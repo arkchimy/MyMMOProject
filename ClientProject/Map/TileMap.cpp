@@ -13,9 +13,9 @@ namespace map
 	TileMap::TileMap()
 		:mScale(2.f)
 	{
-		for (int i = 0; i < MAP_CONFIG_ROW; ++i)
+		for (int32_t i = 0; i < MAP_CONFIG_ROW; ++i)
 		{
-			for (int j = 0; j < MAP_CONFIG_COL;++j)
+			for (int32_t j = 0; j < MAP_CONFIG_COL;++j)
 			{
 				mTile[i][j] = rand() % MAP_CONFIG_TILESET;
 			}
@@ -52,9 +52,9 @@ namespace map
 		UINT offset = 0;
 		deviceContext.IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
 
-		for (int i = 0; i < MAP_CONFIG_ROW; ++i)
+		for (int32_t i = 0; i < MAP_CONFIG_ROW; ++i)
 		{
-			for (int j = 0; j < MAP_CONFIG_COL;++j)
+			for (int32_t j = 0; j < MAP_CONFIG_COL;++j)
 			{
 				auto srv = mTileImg[mTile[i][j]].GetSRV();
 				RT_ASSERT(mConstantBuffer != nullptr);
@@ -119,7 +119,7 @@ namespace map
 
 		Game::GetInstance().GetDevice().CreateBuffer(&bufferDesc, &initData, &mConstantBuffer);
 	}
-	void TileMap::updateConstantBuffer(int row, int col, const float cameraX, const float cameraY)
+	void TileMap::updateConstantBuffer(int32_t row, int32_t col, const float cameraX, const float cameraY)
 	{
 		CBData cbData = {};
 		cbData.uvOffset[0] = 0.f;
@@ -127,8 +127,8 @@ namespace map
 		cbData.uvScale[0] = 1.f;
 		cbData.uvScale[1] = 1.f;
 
-		float width = (int)MAP_WIDTH * mScale;
-		float height = (int)MAP_HEIGHT * mScale;
+		float width = (int32_t)MAP_WIDTH * mScale;
+		float height = (int32_t)MAP_HEIGHT * mScale;
 
 		float scaleX = width / 640.0f;   // 1280/2
 		float scaleY = height / 360.0f;  // 720/2
